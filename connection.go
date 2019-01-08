@@ -7,7 +7,6 @@ import (
 
 	"sync"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/websocket"
 )
 
@@ -57,14 +56,11 @@ func (ws *Ws) connect() (err error) {
 		HandshakeTimeout: 5 * time.Second, // Timeout or else we'll hang forever and never fail on bad hosts.
 	}
 	ws.conn, resp, err = d.Dial(ws.host, http.Header{})
-	fmt.Println(err)
-	spew.Dump(resp)
 	if err != nil {
 		// As of 3.2.2 the URL has changed.
 		// https://groups.google.com/forum/#!msg/gremlin-users/x4hiHsmTsHM/Xe4GcPtRCAAJ
 		ws.host = ws.host + "/gremlin"
 		ws.conn, resp, err = d.Dial(ws.host, http.Header{})
-		spew.Dump(resp)
 	}
 
 	if err != nil {
