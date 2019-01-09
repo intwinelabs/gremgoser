@@ -55,9 +55,7 @@ func main() {
 
 Authentication
 ==========
-The plugin accepts authentication creating a secure dialer where credentials are setted.
-If the server where are you trying to connect needs authentication and you do not provide the 
-credentials the complement will panic.
+This is a example of a secure connection with authentication.  The example also shows the ability to pass a interface to create a Vertex in the graph as well as the ability to create Edges between interfaces.
 
 ```go
 package main
@@ -134,7 +132,6 @@ func main() {
 	spew.Dump(res3)
 
 	// Ted Likes Donald
-
 	res4, err := g.AddE("likes", p, p2)
 	if err != nil {
 		fmt.Println(err)
