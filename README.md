@@ -7,7 +7,7 @@ gremgo is a fast, efficient, and easy-to-use client for the TinkerPop graph data
 Installation
 ==========
 ```
-go get github.com/qasaur/gremgo
+go get github.com/intwinelabs/gremgo
 ```
 
 Documentation
@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/qasaur/gremgo"
+	"github.com/intwinelabs/gremgo"
 )
 
 func main() {
@@ -66,7 +66,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/qasaur/gremgo"
+	"github.com/intwinelabs/gremgo"
 )
 
 func main() {
@@ -76,28 +76,80 @@ func main() {
 		log.Fatal("Lost connection to the database: " + err.Error())
 	}(errs) // Example of connection error handling logic
 
-	dialer := gremgo.NewSecureDialer("127.0.0.1:8182", "username", "password") // Returns a WebSocket dialer to connect to Gremlin Server
-	g, err := gremgo.Dial(dialer, errs) // Returns a gremgo client to interact with
+	host := "wss://gremlin.server:443/"
+	user := "username"
+	pass := "password"
+	conf := gremgo.SetAuthentication(user, pass)
+	dialer := gremgo.NewDialer(host, conf) // Returns a WebSocket dialer to connect to Gremlin Server
+	g, err := gremgo.Dial(dialer, errs)    // Returns a gremgo client to interact with
 	if err != nil {
 		fmt.Println(err)
-    	return
+		return
 	}
 	res, err := g.Execute( // Sends a query to Gremlin Server with bindings
-		"g.V(x)",
-		map[string]string{"x": "1234"},
+		"g.V()",
+		map[string]string{},
 		map[string]string{},
 	)
+
 	if err != nil {
 		fmt.Println(err)
-    	return
+		return
 	}
-	fmt.Println(res)
+
+	spew.Dump(res)
+
+	// Add a person
+	p := Person{
+		Id:   uuid.New(),
+		PID:  "testID",
+		Name: "Ted",
+		Age:  48,
+	}
+
+	res2, err := g.AddV("person", p)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	spew.Dump(res2)
+
+	// Add a person
+	p2 := Person{
+		Id:   uuid.New(),
+		PID:  "testID",
+		Name: "Donald",
+		Age:  72,
+	}
+
+	res3, err := g.AddV("person", p2)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	spew.Dump(res3)
+
+	// Ted Likes Donald
+
+	res4, err := g.AddE("likes", p, p2)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	spew.Dump(res4)	errs := make(chan error)
+
 }
 ```
 
 License
 ==========
 
+Copyright (c) 2018 Intwine Labs, Inc.
 Copyright (c) 2016 Marcus Engvall
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
