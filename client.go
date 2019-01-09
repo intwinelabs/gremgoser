@@ -1,11 +1,17 @@
 package gremgo
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"reflect"
 	"sync"
 	"time"
-	"errors"
+
+	"github.com/iancoleman/strcase"
+
+	"github.com/google/uuid"
 )
 
 // Client is a container for the gremgo client.
@@ -19,16 +25,15 @@ type Client struct {
 	Errored          bool
 }
 
-
 // NewDialer returns a WebSocket dialer to use when connecting to Gremlin Server
 func NewDialer(host string, configs ...DialerConfig) (dialer *Ws) {
 	dialer = &Ws{
-		timeout: 5 * time.Second,
+		timeout:      5 * time.Second,
 		pingInterval: 60 * time.Second,
-		writingWait: 15 * time.Second,
-		readingWait: 15 * time.Second,
-		connected: false,
-		quit: make(chan struct{}),
+		writingWait:  15 * time.Second,
+		readingWait:  15 * time.Second,
+		connected:    false,
+		quit:         make(chan struct{}),
 	}
 
 	for _, conf := range configs {
@@ -38,7 +43,6 @@ func NewDialer(host string, configs ...DialerConfig) (dialer *Ws) {
 	dialer.host = host
 	return dialer
 }
-
 
 func newClient() (c Client) {
 	c.requests = make(chan []byte, 3)  // c.requests takes any request and delivers it to the WriteWorker for dispatch to Gremlin Server
@@ -86,7 +90,7 @@ func (c *Client) executeRequest(query string, bindings, rebindings map[string]st
 	return
 }
 
-func (c *Client) authenticate(requestId string) (err error){
+func (c *Client) authenticate(requestId string) (err error) {
 	auth := c.conn.getAuth()
 	req, err := prepareAuthRequest(requestId, auth.username, auth.password)
 	if err != nil {
@@ -105,8 +109,8 @@ func (c *Client) authenticate(requestId string) (err error){
 
 // Execute formats a raw Gremlin query, sends it to Gremlin Server, and returns the result.
 func (c *Client) Execute(query string, bindings, rebindings map[string]string) (resp interface{}, err error) {
-	if c.conn.isDisposed(){
-		return nil, errors.New("you cannot write on disposed connection")
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
 	}
 	resp, err = c.executeRequest(query, bindings, rebindings)
 	return
@@ -114,8 +118,8 @@ func (c *Client) Execute(query string, bindings, rebindings map[string]string) (
 
 // ExecuteFile takes a file path to a Gremlin script, sends it to Gremlin Server, and returns the result.
 func (c *Client) ExecuteFile(path string, bindings, rebindings map[string]string) (resp interface{}, err error) {
-	if c.conn.isDisposed(){
-		return nil, errors.New("you cannot write on disposed connection")
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
 	}
 	d, err := ioutil.ReadFile(path) // Read script from file
 	if err != nil {
@@ -132,4 +136,88 @@ func (c *Client) Close() {
 	if c.conn != nil {
 		c.conn.close()
 	}
+}
+
+// AddV takes a label and a interface and adds it a vertex to the graph
+func (c *Client) AddV(label string, data interface{}) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	d := reflect.ValueOf(data)
+
+	id := d.FieldByName("Id")
+	if !id.IsValid() {
+		return nil, errors.New("the passed interface must have an Id field")
+	}
+
+	q := fmt.Sprintf("g.addV('%s')", label)
+
+	for i := 0; i < d.NumField(); i++ {
+		name := strcase.ToLowerCamel(d.Type().Field(i).Name)
+		val := d.Field(i).Interface()
+		switch val.(type) {
+		case uuid.UUID:
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val.(uuid.UUID).String())
+		case string:
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
+		case int:
+			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		case uint:
+			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		case int32:
+			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		case int64:
+			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		case float32:
+			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		case float64:
+			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		default:
+			return nil, fmt.Errorf("Type of interface field is not supported: %T", val)
+		}
+	}
+
+	fmt.Println(q)
+	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+	return
+
+}
+
+// AddE takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
+func (c *Client) AddE(label string, from, to interface{}) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	df := reflect.ValueOf(from)
+	fid := df.FieldByName("Id")
+	if !fid.IsValid() {
+		return nil, errors.New("the passed from interface must have an Id field")
+	}
+
+	dt := reflect.ValueOf(to)
+	tid := dt.FieldByName("Id")
+	if !tid.IsValid() {
+		return nil, errors.New("the passed to interface must have an Id field")
+	}
+
+	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", fid.Interface().(uuid.UUID).String(), label, tid.Interface().(uuid.UUID).String())
+	fmt.Println(q)
+	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+
+	return
+}
+
+// AddEById takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
+func (c *Client) AddEById(label string, from, to uuid.UUID) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", from.String(), label, to.String())
+	fmt.Println(q)
+	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+
+	return
 }
