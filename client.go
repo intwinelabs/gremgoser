@@ -157,21 +157,9 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 		name := strcase.ToLowerCamel(d.Type().Field(i).Name)
 		val := d.Field(i).Interface()
 		switch val.(type) {
-		case uuid.UUID:
+		case uuid.UUID, string:
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val.(uuid.UUID).String())
-		case string:
-			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
-		case int:
-			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
-		case uint:
-			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
-		case int32:
-			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
-		case int64:
-			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
-		case float32:
-			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
-		case float64:
+		case bool, uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
 		default:
 			return nil, fmt.Errorf("Type of interface field is not supported: %T", val)
