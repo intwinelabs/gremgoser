@@ -157,8 +157,10 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 		name := strcase.ToLowerCamel(d.Type().Field(i).Name)
 		val := d.Field(i).Interface()
 		switch val.(type) {
-		case uuid.UUID, string:
+		case uuid.UUID:
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val.(uuid.UUID).String())
+		case string:
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
 		case bool, uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
 		default:
