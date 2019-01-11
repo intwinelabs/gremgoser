@@ -115,7 +115,7 @@ func (c *Client) Execute(query string, bindings, rebindings map[string]string) (
 	return
 }
 
-// Get formats a raw Gremlin query, sends it to Gremlin Server, and updates the passed interface.
+// Get formats a raw Gremlin query, sends it to Gremlin Server, and populates the passed []interface.
 func (c *Client) Get(query string, ptr interface{}) (err error) {
 	if c.conn.isDisposed() {
 		return errors.New("you cannot write on a disposed connection")
