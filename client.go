@@ -187,18 +187,20 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 								} else { // it is a property and we have to looks at the properties map
 									props, ok := respMap["properties"].(map[string]interface{})
 									if ok {
+										// get the poperties slice
 										propSlice, ok := props[name].([]interface{})
 										if ok {
+											// get the value of the property we are looking for
 											v, err := getPropertyValue(propSlice)
 											if err != nil {
 												return err
 											}
-											if f.Kind() == reflect.String {
+											if f.Kind() == reflect.String { // Set as string
 												_v, ok := v.(string)
 												if ok {
 													f.SetString(_v)
 												}
-											} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 {
+											} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 { // Set as int
 												_v, ok := v.(float64)
 												__v := int64(_v)
 												if ok {
@@ -207,14 +209,14 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 														f.SetInt(__v)
 													}
 												}
-											} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 {
+											} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 { // Set as float
 												_v, ok := v.(float64)
 												if ok {
 													if !f.OverflowFloat(_v) {
 														f.SetFloat(_v)
 													}
 												}
-											} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 {
+											} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 { // Set as uint
 												_v, ok := v.(float64)
 												__v := uint64(_v)
 												if ok {
@@ -223,7 +225,7 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 														f.SetUint(__v)
 													}
 												}
-											} else if f.Kind() == reflect.Bool {
+											} else if f.Kind() == reflect.Bool { // Set as bool
 												_v, ok := v.(bool)
 												if ok {
 													f.SetBool(_v)
@@ -234,7 +236,7 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 								}
 							}
 						}
-						//append to slice
+						// update slice
 						sSlice.Index(j).Set(s.Elem())
 					}
 				}
