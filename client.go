@@ -9,8 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iancoleman/strcase"
-
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 )
 
@@ -116,6 +115,153 @@ func (c *Client) Execute(query string, bindings, rebindings map[string]string) (
 	return
 }
 
+// Get formats a raw Gremlin query, sends it to Gremlin Server, and updates the passed interface.
+func (c *Client) Get(query string, ptr interface{}) (err error) {
+	if c.conn.isDisposed() {
+		return errors.New("you cannot write on a disposed connection")
+	}
+
+	var strct reflect.Value
+	// check if it's a a pointer
+	if reflect.TypeOf(ptr) == reflect.TypeOf(reflect.Value{}) {
+		strct = ptr.(reflect.Value)
+	} else {
+		strct = reflect.ValueOf(ptr).Elem()
+	}
+
+	if strct.Kind() != reflect.Slice {
+		return errors.New("the passed interface is not a slice")
+	}
+
+	resp, err := c.executeRequest(query, nil, nil)
+	if err != nil {
+		return err
+	}
+	// get the underlying struct type
+	sType := reflect.TypeOf(strct.Interface()).Elem()
+
+	// test if we can cast resp as slice of interface
+	if respSlice, ok := resp.([]interface{}); ok {
+		// iterate of the interface in the slice
+		for _, item := range respSlice {
+			// create new slice to later copy back
+			lenRespSlice := len(respSlice)
+			sSlice := reflect.MakeSlice(reflect.SliceOf(sType), lenRespSlice, lenRespSlice+1)
+			// test if we can cast resp as slice of interface
+			if respSliceSlice, ok := item.([]interface{}); ok {
+				// iterate over the inner slice
+				for j, innerItem := range respSliceSlice {
+					// check if we can cast as a map
+					if respMap, ok := innerItem.(map[string]interface{}); ok {
+						spew.Dump(respMap)
+						// create a new struct to populate
+						s := reflect.New(sType)
+						// check for Id field
+						ok := s.Elem().FieldByName("Id").IsValid()
+						if !ok {
+							return errors.New("the passed interface must have an Id field")
+						}
+						uuidType := s.Elem().FieldByName("Id").Kind()
+						// iterate over fields and populate
+						for i := 0; i < s.Elem().NumField(); i++ {
+							// get graph tag for field
+							//tag := reflect.TypeOf(data).Elem().Field(i).Tag.Get("graph")
+							tag := sType.Field(i).Tag.Get("graph")
+							name, opts := parseTag(tag)
+							if len(name) == 0 && len(opts) == 0 {
+								continue
+							}
+
+							// get the current field
+							f := s.Elem().Field(i)
+
+							// check if we can modify
+							if f.CanSet() {
+								if f.Kind() == uuidType { // if its the Id field we look in the base response map
+									// create a UUID
+									id, err := uuid.Parse(respMap[name].(string))
+									if err != nil {
+										return err
+									}
+									f.Set(reflect.ValueOf(id))
+								} else { // it is a property and we have to looks at the properties map
+									props, ok := respMap["properties"].(map[string]interface{})
+									if ok {
+										propSlice, ok := props[name].([]interface{})
+										if ok {
+											v, err := getPropertyValue(propSlice)
+											if err != nil {
+												return err
+											}
+											if f.Kind() == reflect.String {
+												_v, ok := v.(string)
+												if ok {
+													f.SetString(_v)
+												}
+											} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 {
+												_v, ok := v.(float64)
+												__v := int64(_v)
+												if ok {
+
+													if !f.OverflowInt(__v) {
+														f.SetInt(__v)
+													}
+												}
+											} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 {
+												_v, ok := v.(float64)
+												if ok {
+													if !f.OverflowFloat(_v) {
+														f.SetFloat(_v)
+													}
+												}
+											} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 {
+												_v, ok := v.(float64)
+												__v := uint64(_v)
+												if ok {
+
+													if !f.OverflowUint(__v) {
+														f.SetUint(__v)
+													}
+												}
+											} else if f.Kind() == reflect.Bool {
+												_v, ok := v.(bool)
+												if ok {
+													f.SetBool(_v)
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						//append to slice
+						sSlice.Index(j).Set(s.Elem())
+					}
+				}
+				spew.Dump("SLICE CREATED", sSlice.Interface())
+				// Copy the new slice to the passed data slice
+				// TODO this does not work
+				n := reflect.Copy(strct, sSlice)
+				spew.Dump("COPIED INTERFACES", n)
+			}
+		}
+	}
+	return
+}
+
+// getProprtyValue takes a property map slice and return the value
+func getPropertyValue(props []interface{}) (interface{}, error) {
+	if len(props) == 0 {
+		return nil, errors.New("passed property slice interface is a empty array")
+	} else {
+		prop, ok := props[0].(map[string]interface{})
+		if ok {
+			return prop["value"], nil
+		}
+	}
+	return nil, errors.New("passed property slice has interface is a empty array")
+}
+
 // ExecuteFile takes a file path to a Gremlin script, sends it to Gremlin Server, and returns the result.
 func (c *Client) ExecuteFile(path string, bindings, rebindings map[string]string) (resp interface{}, err error) {
 	if c.conn.isDisposed() {
@@ -153,23 +299,30 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 
 	q := fmt.Sprintf("g.addV('%s')", label)
 
+	tagLength := 0
+
 	for i := 0; i < d.NumField(); i++ {
-		name := strcase.ToLowerCamel(d.Type().Field(i).Name)
+		tag := d.Type().Field(i).Tag.Get("graph")
+		name, opts := parseTag(tag)
+		if len(name) == 0 && len(opts) == 0 {
+			continue
+		}
+		tagLength++
 		val := d.Field(i).Interface()
-		switch val.(type) {
-		case uuid.UUID:
-			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val.(uuid.UUID).String())
-		case string:
+		if opts.Contains("string") {
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
-		case bool, uint, uint8, uint16, uint32, uint64, int, int8, int16, int32, int64, float32, float64:
+		} else if opts.Contains("bool") || opts.Contains("number") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
-		default:
-			return nil, fmt.Errorf("Type of interface field is not supported: %T", val)
+		} else if len(opts) == 0 {
+			return nil, fmt.Errorf("interface field tag does not contain a tag option type, field type: %T", val)
 		}
 	}
 
-	fmt.Println(q)
-	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+	if tagLength == 0 {
+		return nil, fmt.Errorf("interface of type: %T, does not contain any graph tags", data)
+	}
+
+	resp, err = c.Execute(q, nil, nil)
 	return
 
 }
@@ -193,7 +346,6 @@ func (c *Client) AddE(label string, from, to interface{}) (resp interface{}, err
 	}
 
 	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", fid.Interface().(uuid.UUID).String(), label, tid.Interface().(uuid.UUID).String())
-	fmt.Println(q)
 	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
 
 	return
@@ -206,7 +358,6 @@ func (c *Client) AddEById(label string, from, to uuid.UUID) (resp interface{}, e
 	}
 
 	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", from.String(), label, to.String())
-	fmt.Println(q)
 	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
 
 	return
