@@ -240,11 +240,8 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 						sSlice.Index(j).Set(s.Elem())
 					}
 				}
-				spew.Dump("SLICE CREATED", sSlice.Interface())
 				// Copy the new slice to the passed data slice
-				// TODO this does not work
-				n := reflect.Copy(strct, sSlice)
-				spew.Dump("COPIED INTERFACES", n)
+				strct.Set(sSlice)
 			}
 		}
 	}
