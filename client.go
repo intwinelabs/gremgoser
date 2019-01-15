@@ -312,6 +312,16 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
 		} else if opts.Contains("bool") || opts.Contains("number") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		} else if opts.Contains("[]string") {
+			s := reflect.ValueOf(val)
+			for i := 0; i < s.Len(); i++ {
+				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, s.Index(i).Interface())
+			}
+		} else if opts.Contains("[]bool") || opts.Contains("[]number") {
+			s := reflect.ValueOf(val)
+			for i := 0; i < s.Len(); i++ {
+				q = fmt.Sprintf("%s.property('%s', %v)", q, name, s.Index(i).Interface())
+			}
 		} else if len(opts) == 0 {
 			return nil, fmt.Errorf("interface field tag does not contain a tag option type, field type: %T", val)
 		}
