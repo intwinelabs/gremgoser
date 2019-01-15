@@ -165,7 +165,6 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 						// iterate over fields and populate
 						for i := 0; i < s.Elem().NumField(); i++ {
 							// get graph tag for field
-							//tag := reflect.TypeOf(data).Elem().Field(i).Tag.Get("graph")
 							tag := sType.Field(i).Tag.Get("graph")
 							name, opts := parseTag(tag)
 							if len(name) == 0 && len(opts) == 0 {
@@ -187,11 +186,13 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 								} else { // it is a property and we have to looks at the properties map
 									props, ok := respMap["properties"].(map[string]interface{})
 									if ok {
-										// get the poperties slice
-										propSlice, ok := props[name].([]interface{})
-										if ok {
+										// get the properties slice
+										propSlice := reflect.ValueOf(props[name])
+										propSliceLen := propSlice.Len()
+										// check the length, if its 1 we set it as a single value otherwise we need to create a slice
+										if propSliceLen == 1 {
 											// get the value of the property we are looking for
-											v, err := getPropertyValue(propSlice)
+											v, err := getPropertyValue(propSlice.Index(0).Interface())
 											if err != nil {
 												return err
 											}
@@ -231,6 +232,54 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 													f.SetBool(_v)
 												}
 											}
+										} else if propSliceLen > 1 { // we need to creates slices for the properties
+											pSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), propSliceLen, propSliceLen+1)
+											// now we iterate over the properties
+											for i := 0; i < propSliceLen; i++ {
+												// get the value of the property we are looking for
+												v, err := getPropertyValue(propSlice.Index(i).Interface())
+												if err != nil {
+													return err
+												}
+												if f.Type().Elem().Kind() == reflect.String { // Set as string
+													_v, ok := v.(string)
+													if ok {
+														pSlice.Index(i).SetString(_v)
+													}
+												} else if f.Type().Elem().Kind() == reflect.Int || f.Type().Elem().Kind() == reflect.Int8 || f.Type().Elem().Kind() == reflect.Int16 || f.Type().Elem().Kind() == reflect.Int32 || f.Type().Elem().Kind() == reflect.Int64 { // Set as int
+													_v, ok := v.(float64)
+													__v := int64(_v)
+													if ok {
+
+														if !pSlice.Index(i).OverflowInt(__v) {
+															pSlice.Index(i).SetInt(__v)
+														}
+													}
+												} else if f.Type().Elem().Kind() == reflect.Float32 || f.Type().Elem().Kind() == reflect.Float64 { // Set as float
+													_v, ok := v.(float64)
+													if ok {
+														if !pSlice.Index(i).OverflowFloat(_v) {
+															pSlice.Index(i).SetFloat(_v)
+														}
+													}
+												} else if f.Type().Elem().Kind() == reflect.Uint || f.Type().Elem().Kind() == reflect.Uint8 || f.Type().Elem().Kind() == reflect.Uint16 || f.Type().Elem().Kind() == reflect.Uint32 || f.Type().Elem().Kind() == reflect.Uint64 { // Set as uint
+													_v, ok := v.(float64)
+													__v := uint64(_v)
+													if ok {
+
+														if !pSlice.Index(i).OverflowUint(__v) {
+															pSlice.Index(i).SetUint(__v)
+														}
+													}
+												} else if f.Type().Elem().Kind() == reflect.Bool { // Set as bool
+													_v, ok := v.(bool)
+													if ok {
+														pSlice.Index(i).SetBool(_v)
+													}
+												}
+											}
+											// set the field to the created slice
+											f.Set(pSlice)
 										}
 									}
 								}
@@ -249,16 +298,12 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 }
 
 // getProprtyValue takes a property map slice and return the value
-func getPropertyValue(props []interface{}) (interface{}, error) {
-	if len(props) == 0 {
-		return nil, errors.New("passed property slice interface is a empty array")
-	} else {
-		prop, ok := props[0].(map[string]interface{})
-		if ok {
-			return prop["value"], nil
-		}
+func getPropertyValue(prop interface{}) (interface{}, error) {
+	propMap, ok := prop.(map[string]interface{})
+	if ok {
+		return propMap["value"], nil
 	}
-	return nil, errors.New("passed property slice has interface is a empty array")
+	return nil, errors.New("passed property cannot be cast")
 }
 
 // ExecuteFile takes a file path to a Gremlin script, sends it to Gremlin Server, and returns the result.
