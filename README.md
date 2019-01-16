@@ -138,8 +138,20 @@ func main() {
 		return
 	}
 
-	spew.Dump(res4)	errs := make(chan error)
+	spew.Dump(res4)
 
+	// Lets ask the graph for p back as a new instance of a Person
+	id := p.Id.String()
+	p3 := []Person{}
+	q := fmt.Sprintf("g.V('%s')", id)
+	//q = "g.V()"
+	fmt.Println(q)
+	err = g.Get(q, &p3)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	spew.Dump(p3)
 }
 ```
 
@@ -147,6 +159,7 @@ License
 ==========
 
 Copyright (c) 2018 Intwine Labs, Inc.
+
 Copyright (c) 2016 Marcus Engvall
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:

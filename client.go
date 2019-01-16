@@ -186,100 +186,103 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 								} else { // it is a property and we have to looks at the properties map
 									props, ok := respMap["properties"].(map[string]interface{})
 									if ok {
-										// get the properties slice
-										propSlice := reflect.ValueOf(props[name])
-										propSliceLen := propSlice.Len()
-										// check the length, if its 1 we set it as a single value otherwise we need to create a slice
-										if propSliceLen == 1 {
-											// get the value of the property we are looking for
-											v, err := getPropertyValue(propSlice.Index(0).Interface())
-											if err != nil {
-												return err
-											}
-											if f.Kind() == reflect.String { // Set as string
-												_v, ok := v.(string)
-												if ok {
-													f.SetString(_v)
-												}
-											} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 { // Set as int
-												_v, ok := v.(float64)
-												__v := int64(_v)
-												if ok {
-
-													if !f.OverflowInt(__v) {
-														f.SetInt(__v)
-													}
-												}
-											} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 { // Set as float
-												_v, ok := v.(float64)
-												if ok {
-													if !f.OverflowFloat(_v) {
-														f.SetFloat(_v)
-													}
-												}
-											} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 { // Set as uint
-												_v, ok := v.(float64)
-												__v := uint64(_v)
-												if ok {
-
-													if !f.OverflowUint(__v) {
-														f.SetUint(__v)
-													}
-												}
-											} else if f.Kind() == reflect.Bool { // Set as bool
-												_v, ok := v.(bool)
-												if ok {
-													f.SetBool(_v)
-												}
-											}
-										} else if propSliceLen > 1 { // we need to creates slices for the properties
-											pSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), propSliceLen, propSliceLen+1)
-											// now we iterate over the properties
-											for i := 0; i < propSliceLen; i++ {
+										// check if the key is in the map
+										if _, ok := props[name]; ok {
+											// get the properties slice
+											propSlice := reflect.ValueOf(props[name])
+											propSliceLen := propSlice.Len()
+											// check the length, if its 1 we set it as a single value otherwise we need to create a slice
+											if propSliceLen == 1 {
 												// get the value of the property we are looking for
-												v, err := getPropertyValue(propSlice.Index(i).Interface())
+												v, err := getPropertyValue(propSlice.Index(0).Interface())
 												if err != nil {
 													return err
 												}
-												if f.Type().Elem().Kind() == reflect.String { // Set as string
+												if f.Kind() == reflect.String { // Set as string
 													_v, ok := v.(string)
 													if ok {
-														pSlice.Index(i).SetString(_v)
+														f.SetString(_v)
 													}
-												} else if f.Type().Elem().Kind() == reflect.Int || f.Type().Elem().Kind() == reflect.Int8 || f.Type().Elem().Kind() == reflect.Int16 || f.Type().Elem().Kind() == reflect.Int32 || f.Type().Elem().Kind() == reflect.Int64 { // Set as int
+												} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 { // Set as int
 													_v, ok := v.(float64)
 													__v := int64(_v)
 													if ok {
 
-														if !pSlice.Index(i).OverflowInt(__v) {
-															pSlice.Index(i).SetInt(__v)
+														if !f.OverflowInt(__v) {
+															f.SetInt(__v)
 														}
 													}
-												} else if f.Type().Elem().Kind() == reflect.Float32 || f.Type().Elem().Kind() == reflect.Float64 { // Set as float
+												} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 { // Set as float
 													_v, ok := v.(float64)
 													if ok {
-														if !pSlice.Index(i).OverflowFloat(_v) {
-															pSlice.Index(i).SetFloat(_v)
+														if !f.OverflowFloat(_v) {
+															f.SetFloat(_v)
 														}
 													}
-												} else if f.Type().Elem().Kind() == reflect.Uint || f.Type().Elem().Kind() == reflect.Uint8 || f.Type().Elem().Kind() == reflect.Uint16 || f.Type().Elem().Kind() == reflect.Uint32 || f.Type().Elem().Kind() == reflect.Uint64 { // Set as uint
+												} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 { // Set as uint
 													_v, ok := v.(float64)
 													__v := uint64(_v)
 													if ok {
 
-														if !pSlice.Index(i).OverflowUint(__v) {
-															pSlice.Index(i).SetUint(__v)
+														if !f.OverflowUint(__v) {
+															f.SetUint(__v)
 														}
 													}
-												} else if f.Type().Elem().Kind() == reflect.Bool { // Set as bool
+												} else if f.Kind() == reflect.Bool { // Set as bool
 													_v, ok := v.(bool)
 													if ok {
-														pSlice.Index(i).SetBool(_v)
+														f.SetBool(_v)
 													}
 												}
+											} else if propSliceLen > 1 { // we need to creates slices for the properties
+												pSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), propSliceLen, propSliceLen+1)
+												// now we iterate over the properties
+												for i := 0; i < propSliceLen; i++ {
+													// get the value of the property we are looking for
+													v, err := getPropertyValue(propSlice.Index(i).Interface())
+													if err != nil {
+														return err
+													}
+													if f.Type().Elem().Kind() == reflect.String { // Set as string
+														_v, ok := v.(string)
+														if ok {
+															pSlice.Index(i).SetString(_v)
+														}
+													} else if f.Type().Elem().Kind() == reflect.Int || f.Type().Elem().Kind() == reflect.Int8 || f.Type().Elem().Kind() == reflect.Int16 || f.Type().Elem().Kind() == reflect.Int32 || f.Type().Elem().Kind() == reflect.Int64 { // Set as int
+														_v, ok := v.(float64)
+														__v := int64(_v)
+														if ok {
+
+															if !pSlice.Index(i).OverflowInt(__v) {
+																pSlice.Index(i).SetInt(__v)
+															}
+														}
+													} else if f.Type().Elem().Kind() == reflect.Float32 || f.Type().Elem().Kind() == reflect.Float64 { // Set as float
+														_v, ok := v.(float64)
+														if ok {
+															if !pSlice.Index(i).OverflowFloat(_v) {
+																pSlice.Index(i).SetFloat(_v)
+															}
+														}
+													} else if f.Type().Elem().Kind() == reflect.Uint || f.Type().Elem().Kind() == reflect.Uint8 || f.Type().Elem().Kind() == reflect.Uint16 || f.Type().Elem().Kind() == reflect.Uint32 || f.Type().Elem().Kind() == reflect.Uint64 { // Set as uint
+														_v, ok := v.(float64)
+														__v := uint64(_v)
+														if ok {
+
+															if !pSlice.Index(i).OverflowUint(__v) {
+																pSlice.Index(i).SetUint(__v)
+															}
+														}
+													} else if f.Type().Elem().Kind() == reflect.Bool { // Set as bool
+														_v, ok := v.(bool)
+														if ok {
+															pSlice.Index(i).SetBool(_v)
+														}
+													}
+												}
+												// set the field to the created slice
+												f.Set(pSlice)
 											}
-											// set the field to the created slice
-											f.Set(pSlice)
 										}
 									}
 								}
@@ -353,22 +356,22 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 		}
 		tagLength++
 		val := d.Field(i).Interface()
-		if opts.Contains("string") {
+		if len(opts) == 0 {
+			return nil, fmt.Errorf("interface field tag does not contain a tag option type, field type: %T", val)
+		} else if opts.Contains("string") {
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
-		} else if opts.Contains("bool") || opts.Contains("number") {
+		} else if opts.Contains("bool") || opts.Contains("number") || opts.Contains("other") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
 		} else if opts.Contains("[]string") {
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
 				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, s.Index(i).Interface())
 			}
-		} else if opts.Contains("[]bool") || opts.Contains("[]number") {
+		} else if opts.Contains("[]bool") || opts.Contains("[]number") || opts.Contains("[]other") {
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
 				q = fmt.Sprintf("%s.property('%s', %v)", q, name, s.Index(i).Interface())
 			}
-		} else if len(opts) == 0 {
-			return nil, fmt.Errorf("interface field tag does not contain a tag option type, field type: %T", val)
 		}
 	}
 
