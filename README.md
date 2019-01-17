@@ -43,8 +43,23 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/google/uuid"
 	"github.com/intwinelabs/gremgoser"
 )
+
+type X float32
+
+type Person struct {
+	Id     uuid.UUID `graph:"id,string"`
+	PID    string    `graph:"pid,string"`
+	Name   string    `graph:"name,string"`
+	Age    int       `graph:"age,number"`
+	Active bool      `graph:"active,bool"`
+	Vect   []float32 `graph:"vect,[]number"`
+	Test   []string  `graph:"test,[]string"`
+	Foo    X         `graph:"foo,other"`
+}
 
 func main() {
 	errs := make(chan error)
@@ -82,6 +97,9 @@ func main() {
 		PID:  "testID",
 		Name: "Ted",
 		Age:  48,
+		Vect: []float32{1.566864, 0.234},
+		Test: []string{"one", "two", "three", "four"},
+		Foo:  0.233,
 	}
 
 	res2, err := g.AddV("person", p)

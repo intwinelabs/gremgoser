@@ -1,6 +1,7 @@
 package gremgoser
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,6 +11,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var NoAuth = errors.New("Client does not have a Secure Dialer for authenticate with the server")
+
 type dialer interface {
 	connect() error
 	isConnected() bool
@@ -17,7 +20,7 @@ type dialer interface {
 	write([]byte) error
 	read() ([]byte, error)
 	close() error
-	getAuth() *auth
+	getAuth() (*auth, error)
 	ping(errs chan error)
 }
 
@@ -108,11 +111,11 @@ func (ws *Ws) close() (err error) {
 	return
 }
 
-func (ws *Ws) getAuth() *auth {
+func (ws *Ws) getAuth() (*auth, error) {
 	if ws.auth == nil {
-		panic("You must create a Secure Dialer for authenticate with the server")
+		return nil, NoAuth
 	}
-	return ws.auth
+	return ws.auth, nil
 }
 
 func (ws *Ws) ping(errs chan error) {

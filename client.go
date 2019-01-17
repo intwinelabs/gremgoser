@@ -90,7 +90,10 @@ func (c *Client) executeRequest(query string, bindings, rebindings map[string]st
 }
 
 func (c *Client) authenticate(requestId string) (err error) {
-	auth := c.conn.getAuth()
+	auth, err := c.conn.getAuth()
+	if err != nil {
+		return err
+	}
 	req, err := prepareAuthRequest(requestId, auth.username, auth.password)
 	if err != nil {
 		return
