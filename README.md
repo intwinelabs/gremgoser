@@ -2,7 +2,7 @@
 
 [![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/intwinelabs/gremgoser)
 
-gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. Gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and is currently not production ready.
+gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and is currently not production ready.
 
 Installation
 ==========
@@ -15,8 +15,25 @@ Documentation
 
 * [GoDoc](https://godoc.org/github.com/intwinelabs/gremgoser)
 
+Project Management
+==========
+
+* [v1.0](https://github.com/intwinelabs/gremgoser/projects/1)
+
+Contributing
+==========
+
+* **Reporting Issues** - When reporting issues on GitHub please include your host OS (Ubuntu 12.04, Fedora 19, etc) `sudo lsb_release -a`, the output of `uname -a`, `go version`, tinkerpop server and version. Please include the steps required to reproduce the problem. This info will help us review and fix your issue faster.
+* **We welcome your pull requests** - We are always thrilled to receive pull requests, and do our best to process them as fast as possible. 
+	* Not sure if that typo is worth a pull request? Do it! We will appreciate it.
+    * If your pull request is not accepted on the first try, don't be discouraged! We will do our berst to give you feedback on what to improve.
+    * We're trying very hard to keep gremgoser lean and focused. We don't want it to do everything for everybody. This means that we might decide against incorporating a new feature. However, we encourage you to fork our repo and implement it on top of gremgoser.
+	* Any changes or improvements should be documented as a GitHub issue before we add it to the project anbd anybody starts working on it.
+* **Please check for existing issues first** - If it does add a quick "+1". This will help prioritize the most common problems and requests.
+
 Example
 ==========
+
 This is a example of a secure connection with authentication.  The example also shows the ability to pass a interface to create a Vertex in the graph as well as the ability to create Edges between interfaces. This also shows de-serialization of interface from the graph.
 
 ```go
