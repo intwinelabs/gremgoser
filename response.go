@@ -1,4 +1,4 @@
-package gremgo
+package gremgoser
 
 import (
 	"encoding/json"
@@ -60,7 +60,7 @@ func (c *Client) saveResponse(resp response) {
 	newdata := append(container, resp.data)  // Create new data container with new data
 	c.results.Store(resp.requestId, newdata) // Add new data to buffer for future retrieval
 	respNotifier, load := c.responseNotifier.LoadOrStore(resp.requestId, make(chan int, 1))
-	_=load
+	_ = load
 	if resp.code != 206 {
 		respNotifier.(chan int) <- 1
 	}

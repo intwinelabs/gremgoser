@@ -1,4 +1,4 @@
-package gremgo
+package gremgoser
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Client is a container for the gremgo client.
+// Client is a container for the gremgoser client.
 type Client struct {
 	conn             dialer
 	requests         chan []byte
@@ -52,7 +52,7 @@ func newClient() (c Client) {
 	return
 }
 
-// Dial returns a gremgo client for interaction with the Gremlin Server specified in the host IP.
+// Dial returns a gremgoser client for interaction with the Gremlin Server specified in the host IP.
 func Dial(conn dialer, errs chan error) (c Client, err error) {
 	c = newClient()
 	c.conn = conn

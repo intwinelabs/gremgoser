@@ -1,9 +1,9 @@
-package gremgo
+package gremgoser
 
 import (
+	"log"
 	"reflect"
 	"testing"
-	"log"
 )
 
 /*
@@ -76,7 +76,7 @@ func TestResponseHandling(t *testing.T) {
 func TestResponseAuthHandling(t *testing.T) {
 	c := newClient()
 	ws := new(Ws)
-	ws.auth = &auth{username:"test", password:"test"}
+	ws.auth = &auth{username: "test", password: "test"}
 	c.conn = ws
 
 	c.handleResponse(dummyNeedAuthenticationResponse)
@@ -92,9 +92,9 @@ func TestResponseAuthHandling(t *testing.T) {
 		return
 	}
 
-	authRequest := <- c.requests //Simulate that client send auth challenge to server
+	authRequest := <-c.requests //Simulate that client send auth challenge to server
 
-	if !reflect.DeepEqual(authRequest, sampleAuthRequest){
+	if !reflect.DeepEqual(authRequest, sampleAuthRequest) {
 		t.Error("Expected data type does not match actual.")
 	}
 

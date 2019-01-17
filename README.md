@@ -1,61 +1,23 @@
-# gremgo
+# gremgoser
 
-[![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/intwinelabs/gremgo)
+[![GoDoc](http://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/intwinelabs/gremgoser)
 
-gremgo is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. Please keep in mind that gremgo is still under heavy development and although effort is being made to fully cover gremgo with reliable tests, bugs may be present in several areas.
+gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. Gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and is currently not production ready.
 
 Installation
 ==========
 ```
-go get github.com/intwinelabs/gremgo
+go get github.com/intwinelabs/gremgoser
 ```
 
 Documentation
 ==========
 
-* [GoDoc](https://godoc.org/github.com/qasaur/gremgo)
+* [GoDoc](https://godoc.org/github.com/intwinelabs/gremgoser)
 
 Example
 ==========
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/intwinelabs/gremgo"
-)
-
-func main() {
-	errs := make(chan error)
-	go func(chan error) {
-		err := <-errs
-		log.Fatal("Lost connection to the database: " + err.Error())
-	}(errs) // Example of connection error handling logic
-
-	dialer := gremgo.NewDialer("ws://127.0.0.1:8182") // Returns a WebSocket dialer to connect to Gremlin Server
-	g, err := gremgo.Dial(dialer, errs) // Returns a gremgo client to interact with
-	if err != nil {
-		fmt.Println(err)
-    	return
-	}
-	res, err := g.Execute( // Sends a query to Gremlin Server with bindings
-		"g.V(x)",
-		map[string]string{"x": "1234"},
-		map[string]string{},
-	)
-	if err != nil {
-		fmt.Println(err)
-    	return
-	}
-	fmt.Println(res)
-}
-```
-
-Authentication
-==========
-This is a example of a secure connection with authentication.  The example also shows the ability to pass a interface to create a Vertex in the graph as well as the ability to create Edges between interfaces.
+This is a example of a secure connection with authentication.  The example also shows the ability to pass a interface to create a Vertex in the graph as well as the ability to create Edges between interfaces. This also shows de-serialization of interface from the graph.
 
 ```go
 package main
@@ -64,7 +26,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/intwinelabs/gremgo"
+	"github.com/intwinelabs/gremgoser"
 )
 
 func main() {
@@ -77,9 +39,9 @@ func main() {
 	host := "wss://gremlin.server:443/"
 	user := "username"
 	pass := "password"
-	conf := gremgo.SetAuthentication(user, pass)
-	dialer := gremgo.NewDialer(host, conf) // Returns a WebSocket dialer to connect to Gremlin Server
-	g, err := gremgo.Dial(dialer, errs)    // Returns a gremgo client to interact with
+	conf := gremgoser.SetAuthentication(user, pass)
+	dialer := gremgoser.NewDialer(host, conf) // Returns a WebSocket dialer to connect to Gremlin Server
+	g, err := gremgoser.Dial(dialer, errs)    // Returns a gremgoser client to interact with
 	if err != nil {
 		fmt.Println(err)
 		return

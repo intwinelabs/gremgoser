@@ -1,4 +1,4 @@
-package gremgo
+package gremgoser
 
 import (
 	"sync"
