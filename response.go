@@ -3,6 +3,7 @@ package gremgoser
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 type response struct {
@@ -12,10 +13,12 @@ type response struct {
 }
 
 func (c *Client) handleResponse(msg []byte) (err error) {
+	fmt.Printf("\n\nFUCK M: %s\n\n", msg)
 	resp, err := marshalResponse(msg)
 	if err != nil {
 		return
 	}
+	fmt.Printf("\n\nFUCK R: %s\n\n", resp.data)
 
 	if resp.code == 407 { //Server request authentication
 		return c.authenticate(resp.requestId)
@@ -33,9 +36,17 @@ func marshalResponse(msg []byte) (resp response, err error) {
 		return
 	}
 
-	status := j["status"].(map[string]interface{})
-	result := j["result"].(map[string]interface{})
-	code := status["code"].(float64)
+	var status, result map[string]interface{}
+	var code float64
+	if _, ok := j["status"].(map[string]interface{}); ok {
+		status = j["status"].(map[string]interface{})
+	}
+	if _, ok := j["result"].(map[string]interface{}); ok {
+		result = j["result"].(map[string]interface{})
+	}
+	if _, ok := status["code"].(float64); ok {
+		code = status["code"].(float64)
+	}
 
 	resp.code = int(code)
 	err = responseDetectError(resp.code)
@@ -45,7 +56,9 @@ func marshalResponse(msg []byte) (resp response, err error) {
 		resp.data = result["data"]
 	}
 	err = nil
-	resp.requestId = j["requestId"].(string)
+	if _, ok := j["requestId"].(string); ok {
+		resp.requestId = j["requestId"].(string)
+	}
 	return
 }
 
