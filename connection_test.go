@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -191,19 +192,23 @@ func TestWsConnection(t *testing.T) {
 	assert.Equal(NoAuth, err)
 
 	// TODO fix this test
-	/*/ test ping
+	// test ping
 	ws.pingInterval = time.Duration(10) * time.Millisecond
 	errs := make(chan error)
-	ws.ping(errs)
+	go ws.ping(errs)
 	go func() {
-		time.Sleep(time.Duration(100) * time.Millisecond)
+		time.Sleep(time.Duration(15) * time.Millisecond)
+		close(ws.quit)
 		close(errs)
 	}()
 	err = <-errs
 	assert.Nil(err)
-	*/
+	time.Sleep(time.Duration(15) * time.Millisecond)
 
 	// test close
-	err = ws.close()
+	ws2 := NewDialer(u)
+	err = ws2.connect()
+	assert.Nil(err)
+	err = ws2.close()
 	assert.Nil(err)
 }
