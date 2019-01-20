@@ -1,1 +1,21 @@
+# Test binary, build with `go test -c`
+*.test
 
+# Output of the go coverage tool
+*.out
+
+# Logs in general
+*.log
+
+# Ignore binary builds
+bin/
+
+# Ignore azure env file
+azure.env
+.azure.env
+
+# Ignore Vedored Packages
+#vendor/*/
+
+# VS Code
+.vscode/
