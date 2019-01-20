@@ -4,7 +4,7 @@
 
 gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and might change until v1.0 release. gremgoser also fixes all panics that could happen in gremgo.
 
-
+Cureent code coverage is: **85.7%**
 
 Installation
 ==========
