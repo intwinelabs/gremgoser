@@ -16,10 +16,10 @@ endif
 	@govendor sync
 
 compiletest: ## Compiles test
-	@go test ./... -run XXxxxXXXxxx  # ensures tests compile before running
+	@go test -v  ./... -run XXxxxXXXxxx  # ensures tests compile before running
 
 test: ## Tests the code
-	@go test ./... -count=1
+	@go test -v ./... -count=1
 
 cover: ## Generates test coverage report
 	@echo "==> Running go test coverage tools: "

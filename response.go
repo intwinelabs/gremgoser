@@ -3,7 +3,6 @@ package gremgoser
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 )
 
 type response struct {
@@ -13,12 +12,10 @@ type response struct {
 }
 
 func (c *Client) handleResponse(msg []byte) (err error) {
-	fmt.Printf("\n\nFUCK M: %s\n\n", msg)
 	resp, err := marshalResponse(msg)
 	if err != nil {
 		return
 	}
-	fmt.Printf("\n\nFUCK R: %s\n\n", resp.data)
 
 	if resp.code == 407 { //Server request authentication
 		return c.authenticate(resp.requestId)
