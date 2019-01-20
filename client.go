@@ -3,13 +3,11 @@ package gremgoser
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"reflect"
 	"sync"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 )
 
@@ -156,7 +154,6 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 				for j, innerItem := range respSliceSlice {
 					// check if we can cast as a map
 					if respMap, ok := innerItem.(map[string]interface{}); ok {
-						spew.Dump(respMap)
 						// create a new struct to populate
 						s := reflect.New(sType)
 						// check for Id field
@@ -310,21 +307,6 @@ func getPropertyValue(prop interface{}) (interface{}, error) {
 		return propMap["value"], nil
 	}
 	return nil, errors.New("passed property cannot be cast")
-}
-
-// ExecuteFile takes a file path to a Gremlin script, sends it to Gremlin Server, and returns the result.
-func (c *Client) ExecuteFile(path string, bindings, rebindings map[string]string) (resp interface{}, err error) {
-	if c.conn.isDisposed() {
-		return nil, errors.New("you cannot write on a disposed connection")
-	}
-	d, err := ioutil.ReadFile(path) // Read script from file
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	query := string(d)
-	resp, err = c.executeRequest(query, bindings, rebindings)
-	return
 }
 
 // Close closes the underlying connection and marks the client as closed.
