@@ -72,14 +72,16 @@ func (ws *Ws) connect() (err error) {
 
 	if err == nil {
 		ws.connected = true
-		ws.conn.SetPongHandler(func(appData string) error {
-			ws.Lock()
-			ws.connected = true
-			ws.Unlock()
-			return nil
-		})
+		ws.conn.SetPongHandler(ws.pongHandler)
 	}
 	return
+}
+
+func (ws *Ws) pongHandler(appData string) error {
+	ws.Lock()
+	ws.connected = true
+	ws.Unlock()
+	return nil
 }
 
 func (ws *Ws) isConnected() bool {

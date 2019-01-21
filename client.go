@@ -123,15 +123,12 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 	}
 
 	var strct reflect.Value
-	// check if it's a a pointer
-	if reflect.TypeOf(ptr) == reflect.TypeOf(reflect.Value{}) {
-		strct = ptr.(reflect.Value)
+	if reflect.ValueOf(ptr).Kind() != reflect.Ptr {
+		return errors.New("the passed interface is not a ptr")
+	} else if reflect.ValueOf(ptr).Elem().Kind() != reflect.Slice {
+		return errors.New("the passed interface is not a slice")
 	} else {
 		strct = reflect.ValueOf(ptr).Elem()
-	}
-
-	if strct.Kind() != reflect.Slice {
-		return errors.New("the passed interface is not a slice")
 	}
 
 	resp, err := c.executeRequest(query, nil, nil)

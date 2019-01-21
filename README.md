@@ -6,7 +6,6 @@
 
 gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and might change until v1.0 release. gremgoser also fixes all panics that could happen in gremgo.
 
-Current code coverage is: **87.1%**
 
 Installation
 ==========
@@ -23,6 +22,17 @@ Project Management
 ==========
 
 * [v1.0](https://github.com/intwinelabs/gremgoser/projects/1)
+
+Build Status
+==========
+
+* [TravisCI](https://travis-ci.org/intwinelabs/gremgoser)
+
+Coverage Status
+==========
+
+* [Coveralls](https://coveralls.io/github/intwinelabs/gremgoser?branch=master)
+
 
 Contributing
 ==========
@@ -77,7 +87,7 @@ func main() {
 	pass := "password"
 	conf := gremgoser.SetAuthentication(user, pass)
 	dialer := gremgoser.NewDialer(host, conf) // Returns a WebSocket dialer to connect to Gremlin Server
-	g, err := gremgoser.Dial(dialer, errs)    // Returns a gremgoser client to interact with
+	g, err := gremgoser.Dial(dialer, errs)    // Returns a gremgoser client to interact with the graph
 	if err != nil {
 		fmt.Println(err)
 		return

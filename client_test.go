@@ -1,7 +1,9 @@
 package gremgoser
 
 import (
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -589,4 +591,92 @@ func TestGet(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(1, len(_ts))
 	assert.Equal(_t, _ts[0])
+
+	// test error not a slice
+	_ts2 := Test{}
+	err = c.Get(q, &_ts2)
+	_err := errors.New("the passed interface is not a slice")
+	assert.Equal(_err, err)
+
+	// test error not a ptr
+	_ts3 := []Test{}
+	err = c.Get(q, _ts3)
+	_err = errors.New("the passed interface is not a ptr")
+	assert.Equal(_err, err)
+}
+
+func TestDisposed(t *testing.T) {
+	assert := assert.New(t)
+
+	// Create test server with the mock handler.
+	s := httptest.NewServer(http.HandlerFunc(mock))
+	defer s.Close()
+
+	// Convert http://127.0.0.1 to ws://127.0.0.
+	u := "ws" + strings.TrimPrefix(s.URL, "http")
+
+	// test connecting to the mock server
+	ws := NewDialer(u)
+
+	// setup err channel
+	errs := make(chan error)
+	go func(chan error) {
+		err := <-errs
+		_err := &net.OpError{}
+		assert.IsType(_err, err)
+	}(errs)
+
+	c, err := Dial(ws, errs)
+	assert.Nil(err)
+	assert.NotNil(c)
+	assert.IsType(Client{}, c)
+
+	// dispose connection
+	err = c.conn.close()
+	assert.Nil(err)
+	q := "g.V()"
+	_, err = c.Execute(q, nil, nil)
+	_err := errors.New("you cannot write on a disposed connection")
+	assert.Equal(_err, err)
+
+	// create test struct to pass as interface to AddV
+	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
+	_t := Test{
+		Id: _tUUID,
+		A:  "aa",
+		B:  10,
+		C:  20,
+		D:  30,
+		E:  40,
+		F:  50,
+		G:  0.06,
+		H:  0.07,
+		I:  80,
+		J:  90,
+		K:  100,
+		L:  110,
+		M:  120,
+		N:  true,
+		AA: []string{"aa", "aa"},
+		BB: []int{10, 10},
+		CC: []int8{20, 20},
+		DD: []int16{30, 30},
+		EE: []int32{40, 40},
+		FF: []int64{50, 50},
+		GG: []float32{0.06, 0.06},
+		HH: []float64{0.07, 0.07},
+		II: []uint{80, 80},
+		JJ: []uint8{90, 90},
+		KK: []uint16{100, 100},
+		LL: []uint32{110, 110},
+		MM: []uint64{120, 120},
+		NN: []bool{true, true},
+		X:  XXX(130),
+		XX: []XXX{XXX(140), XXX(140)},
+	}
+
+	_ts := []Test{}
+	q = fmt.Sprintf("g.V('%s')", &_t.Id)
+	err = c.Get(q, _ts)
+	assert.Equal(_err, err)
 }
