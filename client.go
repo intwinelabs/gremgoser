@@ -342,14 +342,14 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 			return nil, fmt.Errorf("interface field tag does not contain a tag option type, field type: %T", val)
 		} else if opts.Contains("string") {
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
-		} else if opts.Contains("bool") || opts.Contains("number") || opts.Contains("other") {
+		} else if opts.Contains("bool") || opts.Contains("number") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
 		} else if opts.Contains("[]string") {
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
 				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, s.Index(i).Interface())
 			}
-		} else if opts.Contains("[]bool") || opts.Contains("[]number") || opts.Contains("[]other") {
+		} else if opts.Contains("[]bool") || opts.Contains("[]number") {
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
 				q = fmt.Sprintf("%s.property('%s', %v)", q, name, s.Index(i).Interface())
@@ -400,4 +400,77 @@ func (c *Client) AddEById(label string, from, to uuid.UUID) (resp interface{}, e
 	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
 
 	return
+}
+
+// AddEWithProps takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
+func (c *Client) AddEWithProps(label string, from, to interface{}, props map[string]interface{}) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	df := reflect.ValueOf(from)
+	fid := df.FieldByName("Id")
+	if !fid.IsValid() {
+		return nil, errors.New("the passed from interface must have an Id field")
+	}
+
+	dt := reflect.ValueOf(to)
+	tid := dt.FieldByName("Id")
+	if !tid.IsValid() {
+		return nil, errors.New("the passed to interface must have an Id field")
+	}
+
+	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", fid.Interface().(uuid.UUID).String(), label, tid.Interface().(uuid.UUID).String())
+	p, err := buildProps(props)
+	if err != nil {
+		return
+	}
+	q = q + p
+	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+
+	return
+}
+
+// AddEWithPropsById takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
+func (c *Client) AddEWithPropsById(label string, from, to uuid.UUID, props map[string]interface{}) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", from.String(), label, to.String())
+	p, err := buildProps(props)
+	if err != nil {
+		return
+	}
+	q = q + p
+	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+
+	return
+}
+
+func buildProps(props map[string]interface{}) (string, error) {
+	q := ""
+
+	for k, v := range props {
+		t := reflect.ValueOf(v).Kind()
+		if t == reflect.String {
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, k, v)
+		} else if t == reflect.Bool || t == reflect.Int || t == reflect.Int8 || t == reflect.Int16 || t == reflect.Int32 || t == reflect.Int64 || t == reflect.Uint || t == reflect.Uint8 || t == reflect.Uint16 || t == reflect.Uint32 || t == reflect.Uint64 || t == reflect.Float32 || t == reflect.Float64 {
+			q = fmt.Sprintf("%s.property('%s', %v)", q, k, v)
+		} else if t == reflect.Slice {
+			s := reflect.ValueOf(v)
+			for i := 0; i < s.Len(); i++ {
+				if _, ok := s.Index(i).Interface().(string); ok {
+					q = fmt.Sprintf("%s.property('%s', '%s')", q, k, s.Index(i).Interface())
+				} else {
+					q = fmt.Sprintf("%s.property('%s', %v)", q, k, s.Index(i).Interface())
+				}
+			}
+		} else {
+			return "", errors.New("unsupported property map")
+		}
+	}
+
+	return q, nil
+
 }

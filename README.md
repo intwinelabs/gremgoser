@@ -72,7 +72,7 @@ type Person struct {
 	Active bool      `graph:"active,bool"`
 	Vect   []float32 `graph:"vect,[]number"`
 	Test   []string  `graph:"test,[]string"`
-	Foo    X         `graph:"foo,other"`
+	Foo    X         `graph:"foo,number"`
 }
 
 func main() {

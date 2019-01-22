@@ -1,6 +1,7 @@
 package gremgoser
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -46,8 +47,8 @@ type Test struct {
 	LL []uint32  `graph:"ll,[]number"`
 	MM []uint64  `graph:"mm,[]number"`
 	NN []bool    `graph:"nn,[]bool"`
-	X  XXX       `graph:"x,other"`
-	XX []XXX     `graph:"xx,[]other"`
+	X  XXX       `graph:"x,number"`
+	XX []XXX     `graph:"xx,[]number"`
 }
 
 func TestNewDialer(t *testing.T) {
@@ -679,4 +680,189 @@ func TestDisposed(t *testing.T) {
 	q = fmt.Sprintf("g.V('%s')", &_t.Id)
 	err = c.Get(q, _ts)
 	assert.Equal(_err, err)
+
+	_, err = c.AddV("test", _t)
+	assert.Equal(_err, err)
+
+}
+
+func TestBuildProps(t *testing.T) {
+	assert := assert.New(t)
+
+	var props map[string]interface{}
+	maps := []byte(`{"foo":"bar","biz":3}`)
+	err := json.Unmarshal(maps, &props)
+	assert.Nil(err)
+	p, err := buildProps(props)
+	assert.Nil(err)
+	_p := ".property('foo', 'bar').property('biz', 3)"
+	assert.Equal(_p, p)
+}
+
+func TestAddEWithProps(t *testing.T) {
+	assert := assert.New(t)
+
+	// Create test server with the mock handler.
+	s := httptest.NewServer(http.HandlerFunc(mock))
+	defer s.Close()
+
+	// Convert http://127.0.0.1 to ws://127.0.0.
+	u := "ws" + strings.TrimPrefix(s.URL, "http")
+
+	// test connecting to the mock server
+	ws := NewDialer(u)
+
+	// setup err channel
+	errs := make(chan error)
+	go func(chan error) {
+		err := <-errs
+		assert.Nil(err)
+	}(errs)
+
+	c, err := Dial(ws, errs)
+	assert.Nil(err)
+	assert.NotNil(c)
+	assert.IsType(Client{}, c)
+
+	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
+	_t := Test{
+		Id: _tUUID,
+		A:  "aa",
+		B:  10,
+		C:  20,
+		D:  30,
+		E:  40,
+		F:  50,
+		G:  0.06,
+		H:  0.07,
+		I:  80,
+		J:  90,
+		K:  100,
+		L:  110,
+		M:  120,
+		N:  true,
+		AA: []string{"aa", "aa"},
+		BB: []int{10, 10},
+		CC: []int8{20, 20},
+		DD: []int16{30, 30},
+		EE: []int32{40, 40},
+		FF: []int64{50, 50},
+		GG: []float32{0.06, 0.06},
+		HH: []float64{0.07, 0.07},
+		II: []uint{80, 80},
+		JJ: []uint8{90, 90},
+		KK: []uint16{100, 100},
+		LL: []uint32{110, 110},
+		MM: []uint64{120, 120},
+		NN: []bool{true, true},
+		X:  XXX(130),
+		XX: []XXX{XXX(140), XXX(140)},
+	}
+
+	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
+	_t2 := Test{
+		Id: _t2UUID,
+		A:  "a",
+		B:  1,
+		C:  2,
+		D:  3,
+		E:  4,
+		F:  5,
+		G:  0.6,
+		H:  0.7,
+		I:  8,
+		J:  9,
+		K:  10,
+		L:  11,
+		M:  12,
+		N:  true,
+		AA: []string{"a", "a"},
+		BB: []int{1, 1},
+		CC: []int8{2, 2},
+		DD: []int16{3, 3},
+		EE: []int32{4, 4},
+		FF: []int64{5, 5},
+		GG: []float32{0.6, 0.6},
+		HH: []float64{0.7, 0.7},
+		II: []uint{8, 8},
+		JJ: []uint8{9, 9},
+		KK: []uint16{10, 10},
+		LL: []uint32{11, 11},
+		MM: []uint64{12, 12},
+		NN: []bool{true, true},
+		X:  XXX(13),
+		XX: []XXX{XXX(14), XXX(14)},
+	}
+
+	_resp := []interface{}([]interface{}{
+		[]interface{}{
+			map[string]interface{}{
+				"outVLabel":  "test",
+				"type":       "edge",
+				"id":         "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
+				"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
+				"inVLabel":   "test",
+				"label":      "relates",
+				"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
+				"properties": map[string]interface{}{"biz": float64(3), "foo": "bar"},
+			}}})
+
+	var props map[string]interface{}
+	maps := []byte(`{"foo":"bar","biz":3}`)
+	err = json.Unmarshal(maps, &props)
+	assert.Nil(err)
+	resp, err := c.AddEWithProps("relates", _t, _t2, props)
+	assert.Nil(err)
+	assert.Equal(_resp, resp)
+}
+
+func TestAddEWithPropsById(t *testing.T) {
+	assert := assert.New(t)
+
+	// Create test server with the mock handler.
+	s := httptest.NewServer(http.HandlerFunc(mock))
+	defer s.Close()
+
+	// Convert http://127.0.0.1 to ws://127.0.0.
+	u := "ws" + strings.TrimPrefix(s.URL, "http")
+
+	// test connecting to the mock server
+	ws := NewDialer(u)
+
+	// setup err channel
+	errs := make(chan error)
+	go func(chan error) {
+		err := <-errs
+		assert.Nil(err)
+	}(errs)
+
+	c, err := Dial(ws, errs)
+	assert.Nil(err)
+	assert.NotNil(c)
+	assert.IsType(Client{}, c)
+
+	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
+	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
+
+	_resp := []interface{}([]interface{}{
+		[]interface{}{
+			map[string]interface{}{
+				"outVLabel":  "test",
+				"type":       "edge",
+				"id":         "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
+				"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
+				"inVLabel":   "test",
+				"label":      "relates",
+				"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
+				"properties": map[string]interface{}{"biz": float64(3), "foo": "bar"},
+			}}})
+
+	var props map[string]interface{}
+	maps := []byte(`{"foo":"bar","biz":[3,4],"baz":["foo","bar"]}`)
+	err = json.Unmarshal(maps, &props)
+	assert.Nil(err)
+	resp, err := c.AddEWithPropsById("relates", _tUUID, _t2UUID, props)
+	assert.Nil(err)
+	assert.Equal(_resp, resp)
+
 }
