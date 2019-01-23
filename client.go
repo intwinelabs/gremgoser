@@ -175,11 +175,13 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 							if f.CanSet() {
 								if f.Kind() == uuidType { // if its the Id field we look in the base response map
 									// create a UUID
-									id, err := uuid.Parse(respMap[name].(string))
-									if err != nil {
-										return err
+									if idStr, ok := respMap[name].(string); ok {
+										id, err := uuid.Parse(idStr)
+										if err != nil {
+											return err
+										}
+										f.Set(reflect.ValueOf(id))
 									}
-									f.Set(reflect.ValueOf(id))
 								} else { // it is a property and we have to looks at the properties map
 									props, ok := respMap["properties"].(map[string]interface{})
 									if ok {
@@ -386,9 +388,8 @@ func (c *Client) AddE(label string, from, to interface{}) (resp interface{}, err
 		return nil, errors.New("the passed to interface must have an Id field")
 	}
 
-	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", fid.Interface().(uuid.UUID).String(), label, tid.Interface().(uuid.UUID).String())
+	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", fid.Interface(), label, tid.Interface())
 	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
-
 	return
 }
 
