@@ -49,7 +49,9 @@ var gremE = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').addE('relates').to(g.V(
 
 var gremEWithProps = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').addE('relates').to(g.V('dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a')).property('foo', 'bar').property('biz', 3)`
 
-var gremEWithPropsSlice = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').addE('relates').to(g.V('dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a')).property('foo', 'bar').property('biz', 3).property('biz', 4).property('baz', 'foo').property('baz', 'bar')`
+var gremEWithProps2 = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').addE('relates').to(g.V('dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a')).property('biz', 3).property('foo', 'bar')`
+
+var gremEWithPropsSlice = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').addE('relates').to(g.V('dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a')).property('baz', 'foo').property('baz', 'bar')`
 
 var authResp = `{"requestId":"a48a4f3c-f356-4a74-82c2-bdc5980b6495","status":{"code":407,"attributes":{"x-ms-status-code":407},"message":"Graph Service requires Gremlin Client to provide SASL Authentication."},"result":{"data":null,"meta":{}}}`
 
@@ -144,6 +146,21 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremEWithProps): // query add edge with props
+				var resp gremlinResponse
+				err := json.Unmarshal([]byte(addEWithPropsResp), &resp)
+				if err != nil {
+					break
+				}
+				resp.RequestId = req.RequestId
+				respMessage, err := json.Marshal(resp)
+				if err != nil {
+					break
+				}
+				err = c.WriteMessage(mt, respMessage)
+				if err != nil {
+					break
+				}
+			case string(gremEWithProps2): // query add edge with props with alternate map order
 				var resp gremlinResponse
 				err := json.Unmarshal([]byte(addEWithPropsResp), &resp)
 				if err != nil {

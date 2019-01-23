@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -624,7 +625,8 @@ func TestDisposed(t *testing.T) {
 	go func(chan error) {
 		err := <-errs
 		_err := &net.OpError{}
-		assert.IsType(_err, err)
+		_errWs := &websocket.CloseError{}
+		assert.True(assert.IsType(_err, err) || assert.IsType(_errWs, err))
 	}(errs)
 
 	c, err := Dial(ws, errs)
@@ -686,6 +688,20 @@ func TestDisposed(t *testing.T) {
 
 }
 
+func TestGetPropVal(t *testing.T) {
+	assert := assert.New(t)
+
+	var props map[string]interface{}
+	maps := []byte(`{"foo":"bar","biz":3}`)
+	err := json.Unmarshal(maps, &props)
+	assert.Nil(err)
+
+	p, err := getPropertyValue(props)
+	assert.Equal(nil, p)
+	_err := errors.New("passed property cannot be cast")
+	assert.Equal(_err, err)
+}
+
 func TestBuildProps(t *testing.T) {
 	assert := assert.New(t)
 
@@ -696,7 +712,37 @@ func TestBuildProps(t *testing.T) {
 	p, err := buildProps(props)
 	assert.Nil(err)
 	_p := ".property('foo', 'bar').property('biz', 3)"
-	assert.Equal(_p, p)
+	_p2 := ".property('biz', 3).property('foo', 'bar')"
+	assert.True(_p == p || _p2 == p)
+}
+
+func TestClientClose(t *testing.T) {
+	assert := assert.New(t)
+
+	// Create test server with the mock handler.
+	s := httptest.NewServer(http.HandlerFunc(mock))
+	defer s.Close()
+
+	// Convert http://127.0.0.1 to ws://127.0.0.
+	u := "ws" + strings.TrimPrefix(s.URL, "http")
+
+	// test connecting to the mock server
+	ws := NewDialer(u)
+
+	// setup err channel
+	errs := make(chan error)
+	go func(chan error) {
+		err := <-errs
+		_err := &net.OpError{}
+		_errWs := &websocket.CloseError{}
+		assert.True(assert.IsType(_err, err) || assert.IsType(_errWs, err))
+	}(errs)
+
+	c, err := Dial(ws, errs)
+	assert.Nil(err)
+	assert.NotNil(c)
+	assert.IsType(Client{}, c)
+	c.Close()
 }
 
 func TestAddEWithProps(t *testing.T) {
@@ -858,7 +904,7 @@ func TestAddEWithPropsById(t *testing.T) {
 			}}})
 
 	var props map[string]interface{}
-	maps := []byte(`{"foo":"bar","biz":[3,4],"baz":["foo","bar"]}`)
+	maps := []byte(`{"baz":["foo","bar"]}`)
 	err = json.Unmarshal(maps, &props)
 	assert.Nil(err)
 	resp, err := c.AddEWithPropsById("relates", _tUUID, _t2UUID, props)

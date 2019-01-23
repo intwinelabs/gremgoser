@@ -301,7 +301,9 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 func getPropertyValue(prop interface{}) (interface{}, error) {
 	propMap, ok := prop.(map[string]interface{})
 	if ok {
-		return propMap["value"], nil
+		if val, ok := propMap["value"]; ok {
+			return val, nil
+		}
 	}
 	return nil, errors.New("passed property cannot be cast")
 }
