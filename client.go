@@ -1,6 +1,7 @@
 package gremgoser
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -206,7 +207,6 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 													_v, ok := v.(float64)
 													__v := int64(_v)
 													if ok {
-
 														if !f.OverflowInt(__v) {
 															f.SetInt(__v)
 														}
@@ -222,7 +222,6 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 													_v, ok := v.(float64)
 													__v := uint64(_v)
 													if ok {
-
 														if !f.OverflowUint(__v) {
 															f.SetUint(__v)
 														}
@@ -232,6 +231,23 @@ func (c *Client) Get(query string, ptr interface{}) (err error) {
 													if ok {
 														f.SetBool(_v)
 													}
+												} else if f.Kind() == reflect.Struct { // take JSON string and unmarshal into struct
+													_v, ok := v.(string)
+													if ok {
+														s := reflect.New(f.Type()).Interface()
+														json.Unmarshal([]byte(_v), s)
+														f.Set(reflect.ValueOf(s).Elem())
+													}
+												} else if f.Kind() == reflect.Slice { // take JSON string and unmarshal into struct
+													_v, ok := v.(string)
+													if ok {
+														sSlice := reflect.SliceOf(f.Type().Elem())
+														s := reflect.New(sSlice)
+														json.Unmarshal([]byte(_v), s.Interface())
+														f.Set(s.Elem())
+													}
+												} else if f.Kind() == reflect.Ptr {
+													return errors.New("gremgoser does not currently support root level pointers")
 												}
 											} else if propSliceLen > 1 { // we need to creates slices for the properties
 												pSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), propSliceLen, propSliceLen+1)
@@ -348,6 +364,12 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
 		} else if opts.Contains("bool") || opts.Contains("number") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		} else if opts.Contains("struct") || opts.Contains("[]struct") {
+			jsonBytes, err := json.Marshal(val)
+			if err != nil {
+				return nil, err
+			}
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, jsonBytes)
 		} else if opts.Contains("[]string") {
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -114,6 +115,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				break
 			}
+			fmt.Printf("Mock Server Request: %s\n", req.Args["gremlin"])
 			switch req.Args["gremlin"] {
 			case string(gremV): // query the whole graph and return a empty graph
 				var resp gremlinResponse
@@ -223,7 +225,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 			default:
 				err = c.WriteMessage(mt, []byte("FOOBAR"))
 				if err != nil {
-					break
+					return
 				}
 			}
 		} else if mt == websocket.PingMessage {

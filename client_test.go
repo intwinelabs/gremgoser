@@ -18,6 +18,12 @@ import (
 
 type XXX float32
 
+type Test2 struct {
+	Id uuid.UUID `graph:"id,string"`
+	A  string    `graph:"a,string"`
+	B  int       `graph:"b,number"`
+}
+
 type Test struct {
 	Id uuid.UUID `graph:"id,string"`
 	A  string    `graph:"a,string"`
@@ -50,6 +56,8 @@ type Test struct {
 	NN []bool    `graph:"nn,[]bool"`
 	X  XXX       `graph:"x,number"`
 	XX []XXX     `graph:"xx,[]number"`
+	Z  Test2     `graph:"z,struct"`
+	ZZ []Test2   `graph:"zz,[]struct"`
 }
 
 func TestNewDialer(t *testing.T) {
@@ -191,6 +199,20 @@ func TestAddV(t *testing.T) {
 		NN: []bool{true, true},
 		X:  XXX(130),
 		XX: []XXX{XXX(140), XXX(140)},
+		Z: Test2{Id: _tUUID,
+			A: "aa",
+			B: 10,
+		},
+		ZZ: []Test2{
+			Test2{Id: _tUUID,
+				A: "aa",
+				B: 10,
+			},
+			Test2{Id: _tUUID,
+				A: "aa",
+				B: 10,
+			},
+		},
 	}
 
 	_tResp := []interface{}{
