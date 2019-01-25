@@ -389,7 +389,64 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 
 	resp, err = c.Execute(q, nil, nil)
 	return
+}
 
+// UpdateV takes a interface and updates the vertex in the graph
+func (c *Client) UpdateV(data interface{}) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	d := reflect.ValueOf(data)
+
+	id := d.FieldByName("Id")
+	if !id.IsValid() {
+		return nil, errors.New("the passed interface must have an Id field")
+	}
+
+	q := fmt.Sprintf("g.V('%s')", id)
+
+	tagLength := 0
+
+	for i := 0; i < d.NumField(); i++ {
+		tag := d.Type().Field(i).Tag.Get("graph")
+		name, opts := parseTag(tag)
+		if len(name) == 0 && len(opts) == 0 {
+			continue
+		}
+		tagLength++
+		val := d.Field(i).Interface()
+		if len(opts) == 0 {
+			return nil, fmt.Errorf("interface field tag does not contain a tag option type, field type: %T", val)
+		} else if opts.Contains("string") {
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
+		} else if opts.Contains("bool") || opts.Contains("number") {
+			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
+		} else if opts.Contains("struct") || opts.Contains("[]struct") {
+			jsonBytes, err := json.Marshal(val)
+			if err != nil {
+				return nil, err
+			}
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, jsonBytes)
+		} else if opts.Contains("[]string") {
+			s := reflect.ValueOf(val)
+			for i := 0; i < s.Len(); i++ {
+				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, s.Index(i).Interface())
+			}
+		} else if opts.Contains("[]bool") || opts.Contains("[]number") {
+			s := reflect.ValueOf(val)
+			for i := 0; i < s.Len(); i++ {
+				q = fmt.Sprintf("%s.property('%s', %v)", q, name, s.Index(i).Interface())
+			}
+		}
+	}
+
+	if tagLength == 0 {
+		return nil, fmt.Errorf("interface of type: %T, does not contain any graph tags", data)
+	}
+
+	resp, err = c.Execute(q, nil, nil)
+	return
 }
 
 // AddE takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
