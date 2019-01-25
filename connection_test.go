@@ -42,7 +42,7 @@ var gremV = `g.V()`
 
 var gremGet = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461')`
 
-var gremV1 = `g.addV('test').property('id', '64795211-c4a1-4eac-9e0a-b674ced77461').property('a', 'aa').property('b', 10).property('c', 20).property('d', 30).property('e', 40).property('f', 50).property('g', 0.06).property('h', 0.07).property('i', 80).property('j', 90).property('k', 100).property('l', 110).property('m', 120).property('n', true).property('aa', 'aa').property('aa', 'aa').property('bb', 10).property('bb', 10).property('cc', 20).property('cc', 20).property('dd', 30).property('dd', 30).property('ee', 40).property('ee', 40).property('ff', 50).property('ff', 50).property('gg', 0.06).property('gg', 0.06).property('hh', 0.07).property('hh', 0.07).property('ii', 80).property('ii', 80).property('jj', 90).property('jj', 90).property('kk', 100).property('kk', 100).property('ll', 110).property('ll', 110).property('mm', 120).property('mm', 120).property('nn', true).property('nn', true).property('x', 130).property('xx', 140).property('xx', 140)`
+var gremV1 = `g.addV('test').property('id', '64795211-c4a1-4eac-9e0a-b674ced77461').property('a', 'aa').property('b', 10).property('c', 20).property('d', 30).property('e', 40).property('f', 50).property('g', 0.06).property('h', 0.07).property('i', 80).property('j', 90).property('k', 100).property('l', 110).property('m', 120).property('n', true).property('aa', 'aa').property('aa', 'aa').property('bb', 10).property('bb', 10).property('cc', 20).property('cc', 20).property('dd', 30).property('dd', 30).property('ee', 40).property('ee', 40).property('ff', 50).property('ff', 50).property('gg', 0.06).property('gg', 0.06).property('hh', 0.07).property('hh', 0.07).property('ii', 80).property('ii', 80).property('jj', 90).property('jj', 90).property('kk', 100).property('kk', 100).property('ll', 110).property('ll', 110).property('mm', 120).property('mm', 120).property('nn', true).property('nn', true).property('x', 130).property('xx', 140).property('xx', 140).property('z', '{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}').property('zz', '[{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10},{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}]')`
 
 var gremV2 = `g.addV('test').property('id', 'dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a').property('a', 'a').property('b', 1).property('c', 2).property('d', 3).property('e', 4).property('f', 5).property('g', 0.6).property('h', 0.7).property('i', 8).property('j', 9).property('k', 10).property('l', 11).property('m', 12).property('n', true).property('aa', 'a').property('aa', 'a').property('bb', 1).property('bb', 1).property('cc', 2).property('cc', 2).property('dd', 3).property('dd', 3).property('ee', 4).property('ee', 4).property('ff', 5).property('ff', 5).property('gg', 0.6).property('gg', 0.6).property('hh', 0.7).property('hh', 0.7).property('ii', 8).property('ii', 8).property('jj', 9).property('jj', 9).property('kk', 10).property('kk', 10).property('ll', 11).property('ll', 11).property('mm', 12).property('mm', 12).property('nn', true).property('nn', true).property('x', 13).property('xx', 14).property('xx', 14)`
 
@@ -115,7 +115,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				break
 			}
-			fmt.Printf("Mock Server Request: %s\n", req.Args["gremlin"])
+			fmt.Printf("------>   Mock Server Request: %s\n", req.Args["gremlin"])
 			switch req.Args["gremlin"] {
 			case string(gremV): // query the whole graph and return a empty graph
 				var resp gremlinResponse
