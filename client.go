@@ -449,6 +449,25 @@ func (c *Client) UpdateV(data interface{}) (resp interface{}, err error) {
 	return
 }
 
+// DropV takes a interface and drops the vertex from the graph
+func (c *Client) DropV(data interface{}) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	d := reflect.ValueOf(data)
+
+	id := d.FieldByName("Id")
+	if !id.IsValid() {
+		return nil, errors.New("the passed interface must have an Id field")
+	}
+
+	q := fmt.Sprintf("g.V('%s').drop()", id)
+
+	resp, err = c.Execute(q, nil, nil)
+	return
+}
+
 // AddE takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
 func (c *Client) AddE(label string, from, to interface{}) (resp interface{}, err error) {
 	if c.conn.isDisposed() {
@@ -525,6 +544,41 @@ func (c *Client) AddEWithPropsById(label string, from, to uuid.UUID, props map[s
 		return
 	}
 	q = q + p
+	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+
+	return
+}
+
+// DropE takes a label, from UUID and to UUID then drops the edge between the two vertex in the graph
+func (c *Client) DropE(label string, from, to interface{}) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	df := reflect.ValueOf(from)
+	fid := df.FieldByName("Id")
+	if !fid.IsValid() {
+		return nil, errors.New("the passed from interface must have an Id field")
+	}
+
+	dt := reflect.ValueOf(to)
+	tid := dt.FieldByName("Id")
+	if !tid.IsValid() {
+		return nil, errors.New("the passed to interface must have an Id field")
+	}
+
+	q := fmt.Sprintf("g.V('%s').outE('%s').and(inV().is('%s')).drop()", fid.Interface(), label, tid.Interface())
+	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
+	return
+}
+
+// DropEById takes a label, from UUID and to UUID then drops the edge between the two vertex in the graph
+func (c *Client) DropEById(label string, from, to uuid.UUID) (resp interface{}, err error) {
+	if c.conn.isDisposed() {
+		return nil, errors.New("you cannot write on a disposed connection")
+	}
+
+	q := fmt.Sprintf("g.V('%s').outE('%s').and(inV().is('%s')).drop()", from.String(), label, to.String())
 	resp, err = c.Execute(q, map[string]string{}, map[string]string{})
 
 	return
