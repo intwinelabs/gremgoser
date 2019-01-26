@@ -18,6 +18,23 @@ Documentation
 
 * [GoDoc](https://godoc.org/github.com/intwinelabs/gremgoser)
 
+Struct Tags
+==========
+* To serialize data in and out of the graph you must supply proper graph struct tags for each field of the struct you would like to serialize:
+	* bool - `graph:"boolName,bool"`
+	* string - `graph:"stringName,string"` 
+	* int, int8, int16, int32, int64 - `graph:"numberName,number"`
+	* uint, uint8, uint16, uint32, uint64 - `graph:"numberName,number"`
+	* float32, float64 - `graph:"numberName,number"`
+	* struct - `graph:"structName,struct"`
+	* []bool - `graph:"boolName,[]bool"`
+	* []string - `graph:"stringName,[]string"`
+	* []int, []int8, []int16, []int32, []int64 - `graph:"numberName,[]number"`
+	* []uint, []uint8, []uint16, []uint32, []uint64 - `graph:"numberName,[]number"`
+	* []float32, []float64 - `graph:"numberName,[]number"`
+	* []struct - `graph:"structName,[]struct"`
+
+
 Project Management
 ==========
 
@@ -40,9 +57,9 @@ Contributing
 * **Reporting Issues** - When reporting issues on GitHub please include your host OS (Ubuntu 12.04, Fedora 19, etc) `sudo lsb_release -a`, the output of `uname -a`, `go version`, tinkerpop server and version. Please include the steps required to reproduce the problem. This info will help us review and fix your issue faster.
 * **We welcome your pull requests** - We are always thrilled to receive pull requests, and do our best to process them as fast as possible. 
 	* Not sure if that typo is worth a pull request? Do it! We will appreciate it.
-    * If your pull request is not accepted on the first try, don't be discouraged! We will do our berst to give you feedback on what to improve.
+    * If your pull request is not accepted on the first try, don't be discouraged! We will do our best to give you feedback on what to improve.
     * We're trying very hard to keep gremgoser lean and focused. We don't want it to do everything for everybody. This means that we might decide against incorporating a new feature. However, we encourage you to fork our repo and implement it on top of gremgoser.
-	* Any changes or improvements should be documented as a GitHub issue before we add it to the project anbd anybody starts working on it.
+	* Any changes or improvements should be documented as a GitHub issue before we add it to the project and anybody starts working on it.
 * **Please check for existing issues first** - If it does add a quick "+1". This will help prioritize the most common problems and requests.
 
 Example
@@ -64,6 +81,10 @@ import (
 
 type X float32
 
+type XX struct {
+	Y string
+}
+
 type Person struct {
 	Id     uuid.UUID `graph:"id,string"`
 	PID    string    `graph:"pid,string"`
@@ -73,6 +94,7 @@ type Person struct {
 	Vect   []float32 `graph:"vect,[]number"`
 	Test   []string  `graph:"test,[]string"`
 	Foo    X         `graph:"foo,number"`
+	Bar    XX         `graph:"bar,struct"`
 }
 
 func main() {
