@@ -4,117 +4,134 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"sync"
 	"time"
 
+	"github.com/intwinelabs/logger"
+
 	"github.com/google/uuid"
 )
 
-// Errors
-var ErrorConnectionDisposed = errors.New("you cannot write on a disposed connection")
-
-// Client is a container for the gremgoser client.
-type Client struct {
-	conn             dialer
-	requests         chan []byte
-	responses        chan []byte
-	results          *sync.Map
-	responseNotifier *sync.Map // responseNotifier notifies the requester that a response has arrived for the request
-	respMutex        *sync.Mutex
-	Errored          bool
+func newClient(conf *ClientConfig) *Client {
+	return &Client{
+		conf:             conf,
+		requests:         make(chan []byte, 3), // c.requests takes any request and delivers it to the WriteWorker for dispatch to Gremlin Server
+		responses:        make(chan []byte, 3), // c.responses takes raw responses from ReadWorker and delivers it for sorting to handelResponse
+		results:          &sync.Map{},
+		responseNotifier: &sync.Map{},
+		respMutex:        &sync.Mutex{}, // c.mutex ensures that sorting is thread safe
+	}
 }
 
-// NewDialer returns a WebSocket dialer to use when connecting to Gremlin Server
-func NewDialer(host string, configs ...DialerConfig) (dialer *Ws) {
-	dialer = &Ws{
-		timeout:      5 * time.Second,
-		pingInterval: 60 * time.Second,
-		writingWait:  15 * time.Second,
-		readingWait:  15 * time.Second,
-		connected:    false,
-		quit:         make(chan struct{}),
+// NewClient returns a gremgoser client for interaction with the Gremlin Server specified in the host IP.
+func NewClient(conf *ClientConfig) (*Client, chan error) {
+	errs := make(chan error)
+
+	if conf.URI == "" {
+		errs <- ErrorInvalidURI
+		return nil, errs
 	}
 
-	for _, conf := range configs {
-		conf(dialer)
+	c := newClient(conf)
+
+	ws := &Ws{
+		uri:       conf.URI,
+		connected: false,
+		quit:      make(chan struct{}),
 	}
 
-	dialer.host = host
-	return dialer
-}
-
-func newClient() (c Client) {
-	c.requests = make(chan []byte, 3)  // c.requests takes any request and delivers it to the WriteWorker for dispatch to Gremlin Server
-	c.responses = make(chan []byte, 3) // c.responses takes raw responses from ReadWorker and delivers it for sorting to handelResponse
-	c.results = &sync.Map{}
-	c.responseNotifier = &sync.Map{}
-	c.respMutex = &sync.Mutex{} // c.mutex ensures that sorting is thread safe
-	return
-}
-
-// Dial returns a gremgoser client for interaction with the Gremlin Server specified in the host IP.
-func Dial(conn dialer, errs chan error) (c Client, err error) {
-	c = newClient()
-	c.conn = conn
+	// check for configs
+	if conf.Logger == nil {
+		conf.Logger = logger.New()
+	}
+	if conf.Timeout != 0 {
+		ws.timeout = conf.Timeout
+	} else {
+		ws.timeout = 5 * time.Second
+	}
+	if conf.PingInterval != 0 {
+		ws.pingInterval = conf.PingInterval
+	} else {
+		ws.pingInterval = 60 * time.Second
+	}
+	if conf.WritingWait != 0 {
+		ws.writingWait = conf.WritingWait
+	} else {
+		ws.writingWait = 15 * time.Second
+	}
+	if conf.ReadingWait != 0 {
+		ws.readingWait = conf.ReadingWait
+	} else {
+		ws.readingWait = 15 * time.Second
+	}
+	c.conn = ws
+	c.conf = conf
 
 	// Connects to Gremlin Server
-	err = conn.connect()
+	err := c.conn.connect()
 	if err != nil {
-		return
+		c.debug("error connecting to %s: %s", conf.URI, err)
+		errs <- err
+		return nil, errs
 	}
 
-	quit := conn.(*Ws).quit
+	quit := c.conn.(*Ws).quit
 
 	go c.writeWorker(errs, quit)
 	go c.readWorker(errs, quit)
-	go conn.ping(errs)
-	return
+	go c.conn.ping(errs)
+
+	return c, errs
 }
 
-func (c *Client) executeRequest(query string, bindings, rebindings map[string]string) (resp interface{}, err error) {
-	req, id, err := prepareRequest(query, bindings, rebindings)
-	if err != nil {
-		return
+// debug prints to the configured logger if debug is enabled
+func (c *Client) debug(frmt string, i ...interface{}) {
+	if c.conf.Debug {
+		c.conf.Logger.Infof("DEBUG: "+frmt, i...)
 	}
+}
 
+// verbose prints to the configured logger if debug is enabled
+func (c *Client) verbose(frmt string, i ...interface{}) {
+	if c.conf.Verbose {
+		c.conf.Logger.InfoDepth(1, fmt.Sprintf("VERBOSE: "+frmt, i...))
+	}
+}
+
+func (c *Client) executeRequest(query string, bindings, rebindings map[string]string) ([]*GremlinData, error) {
+	req := prepareRequest(query, bindings, rebindings)
 	msg, err := packageRequest(req)
 	if err != nil {
-		log.Println(err)
-		return
+		c.debug("error packing request: %s", err)
+		return nil, err
 	}
+	c.debug("packed request: %+v", req)
+	id := req.RequestId
 	c.responseNotifier.Store(id, make(chan int, 1))
 	c.dispatchRequest(msg)
-	resp = c.retrieveResponse(id)
-	return
+	resp := c.retrieveResponse(id)
+	return resp, nil
 }
 
-func (c *Client) authenticate(requestId string) (err error) {
-	auth, err := c.conn.getAuth()
+func (c *Client) authenticate(requestId uuid.UUID) (err error) {
+	c.conf.AuthReq.RequestId = requestId
+	msg, err := packageRequest(c.conf.AuthReq)
 	if err != nil {
+		c.debug("error authenticating to ws server: %s", err)
 		return err
 	}
-	req, err := prepareAuthRequest(requestId, auth.username, auth.password)
-	if err != nil {
-		return
-	}
-
-	msg, err := packageRequest(req)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
 	c.dispatchRequest(msg)
-	return
+	return err
 }
 
 // Execute formats a raw Gremlin query, sends it to Gremlin Server, and returns the result.
-func (c *Client) Execute(query string, bindings, rebindings map[string]string) (resp interface{}, err error) {
+func (c *Client) Execute(query string, bindings, rebindings map[string]string) ([]*GremlinData, error) {
+	c.verbose("%+v", c.conn)
 	if !c.conn.isDisposed() {
-		resp, err = c.executeRequest(query, bindings, rebindings)
-		return
+		resp, err := c.executeRequest(query, bindings, rebindings)
+		c.verbose("%+v", resp)
+		return resp, err
 	}
 	return nil, ErrorConnectionDisposed
 }
@@ -131,187 +148,164 @@ func (c *Client) Get(query string, ptr interface{}) error {
 			strct = reflect.ValueOf(ptr).Elem()
 		}
 
-		resp, err := c.executeRequest(query, nil, nil)
+		respSlice, err := c.executeRequest(query, nil, nil)
 		if err != nil {
 			return err
 		}
 		// get the underlying struct type
 		sType := reflect.TypeOf(strct.Interface()).Elem()
 
-		// test if we can cast resp as slice of interface
-		if respSlice, ok := resp.([]interface{}); ok {
-			// iterate of the interface in the slice
-			for _, item := range respSlice {
-				// create new slice to later copy back
-				lenRespSlice := len(respSlice)
-				sSlice := reflect.MakeSlice(reflect.SliceOf(sType), lenRespSlice, lenRespSlice+1)
-				// test if we can cast resp as slice of interface
-				if respSliceSlice, ok := item.([]interface{}); ok {
-					// iterate over the inner slice
-					for j, innerItem := range respSliceSlice {
-						// check if we can cast as a map
-						if respMap, ok := innerItem.(map[string]interface{}); ok {
-							// create a new struct to populate
-							s := reflect.New(sType)
-							// check for Id field
-							ok := s.Elem().FieldByName("Id").IsValid()
-							if !ok {
-								return errors.New("the passed interface must have an Id field")
-							}
-							uuidType := s.Elem().FieldByName("Id").Kind()
-							// iterate over fields and populate
-							for i := 0; i < s.Elem().NumField(); i++ {
-								// get graph tag for field
-								tag := sType.Field(i).Tag.Get("graph")
-								name, opts := parseTag(tag)
-								if len(name) == 0 && len(opts) == 0 {
-									continue
+		// create new slice to later copy back
+		lenRespSlice := len(respSlice)
+		sSlice := reflect.MakeSlice(reflect.SliceOf(sType), lenRespSlice, lenRespSlice+1)
+		// iterate over the GremlinData respSlice
+		for j, innerItem := range respSlice {
+			// create a new struct to populate
+			s := reflect.New(sType)
+			// check for Id field
+			ok := s.Elem().FieldByName("Id").IsValid()
+			if !ok {
+				return errors.New("the passed interface must have an Id field")
+			}
+			uuidType := s.Elem().FieldByName("Id").Kind()
+			// iterate over fields and populate
+			for i := 0; i < s.Elem().NumField(); i++ {
+				// get graph tag for field
+				tag := sType.Field(i).Tag.Get("graph")
+				name, opts := parseTag(tag)
+				if len(name) == 0 && len(opts) == 0 {
+					continue
+				}
+				// get the current field
+				f := s.Elem().Field(i)
+				// check if we can modify
+				if f.CanSet() {
+					if f.Kind() == uuidType { // if its the Id field we look in the base response map
+						// create a UUID
+						f.Set(reflect.ValueOf(innerItem.Id))
+					} else { // it is a property and we have to looks at the properties map
+						props := innerItem.Properties
+						// check if the key is in the map
+						if _, ok := props[name]; ok {
+							// get the properties slice
+							propSlice := reflect.ValueOf(props[name])
+							propSliceLen := propSlice.Len()
+							// check the length, if its 1 we set it as a single value otherwise we need to create a slice
+							if propSliceLen == 1 {
+								// get the value of the property we are looking for
+								v, err := getPropertyValue(propSlice.Index(0).Interface())
+								if err != nil {
+									return err
 								}
-
-								// get the current field
-								f := s.Elem().Field(i)
-
-								// check if we can modify
-								if f.CanSet() {
-									if f.Kind() == uuidType { // if its the Id field we look in the base response map
-										// create a UUID
-										if idStr, ok := respMap[name].(string); ok {
-											id, err := uuid.Parse(idStr)
-											if err != nil {
-												return err
-											}
-											f.Set(reflect.ValueOf(id))
+								if f.Kind() == reflect.String { // Set as string
+									_v, ok := v.(string)
+									if ok {
+										f.SetString(_v)
+									}
+								} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 { // Set as int
+									_v, ok := v.(float64)
+									__v := int64(_v)
+									if ok {
+										if !f.OverflowInt(__v) {
+											f.SetInt(__v)
 										}
-									} else { // it is a property and we have to looks at the properties map
-										props, ok := respMap["properties"].(map[string]interface{})
+									}
+								} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 { // Set as float
+									_v, ok := v.(float64)
+									if ok {
+										if !f.OverflowFloat(_v) {
+											f.SetFloat(_v)
+										}
+									}
+								} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 { // Set as uint
+									_v, ok := v.(float64)
+									__v := uint64(_v)
+									if ok {
+										if !f.OverflowUint(__v) {
+											f.SetUint(__v)
+										}
+									}
+								} else if f.Kind() == reflect.Bool { // Set as bool
+									_v, ok := v.(bool)
+									if ok {
+										f.SetBool(_v)
+									}
+								} else if f.Kind() == reflect.Struct { // take JSON string and unmarshal into struct
+									_v, ok := v.(string)
+									if ok {
+										s := reflect.New(f.Type()).Interface()
+										json.Unmarshal([]byte(_v), s)
+										f.Set(reflect.ValueOf(s).Elem())
+									}
+								} else if f.Kind() == reflect.Slice { // take JSON string and unmarshal into struct
+									_v, ok := v.(string)
+									if ok {
+										sSlice := reflect.SliceOf(f.Type().Elem())
+										s := reflect.New(sSlice)
+										json.Unmarshal([]byte(_v), s.Interface())
+										f.Set(s.Elem())
+									}
+								} else if f.Kind() == reflect.Ptr {
+									return errors.New("gremgoser does not currently support root level pointers")
+								}
+							} else if propSliceLen > 1 { // we need to creates slices for the properties
+								pSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), propSliceLen, propSliceLen+1)
+								// now we iterate over the properties
+								for i := 0; i < propSliceLen; i++ {
+									// get the value of the property we are looking for
+									v, err := getPropertyValue(propSlice.Index(i).Interface())
+									if err != nil {
+										return err
+									}
+									if f.Type().Elem().Kind() == reflect.String { // Set as string
+										_v, ok := v.(string)
 										if ok {
-											// check if the key is in the map
-											if _, ok := props[name]; ok {
-												// get the properties slice
-												propSlice := reflect.ValueOf(props[name])
-												propSliceLen := propSlice.Len()
-												// check the length, if its 1 we set it as a single value otherwise we need to create a slice
-												if propSliceLen == 1 {
-													// get the value of the property we are looking for
-													v, err := getPropertyValue(propSlice.Index(0).Interface())
-													if err != nil {
-														return err
-													}
-													if f.Kind() == reflect.String { // Set as string
-														_v, ok := v.(string)
-														if ok {
-															f.SetString(_v)
-														}
-													} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 { // Set as int
-														_v, ok := v.(float64)
-														__v := int64(_v)
-														if ok {
-															if !f.OverflowInt(__v) {
-																f.SetInt(__v)
-															}
-														}
-													} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 { // Set as float
-														_v, ok := v.(float64)
-														if ok {
-															if !f.OverflowFloat(_v) {
-																f.SetFloat(_v)
-															}
-														}
-													} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 { // Set as uint
-														_v, ok := v.(float64)
-														__v := uint64(_v)
-														if ok {
-															if !f.OverflowUint(__v) {
-																f.SetUint(__v)
-															}
-														}
-													} else if f.Kind() == reflect.Bool { // Set as bool
-														_v, ok := v.(bool)
-														if ok {
-															f.SetBool(_v)
-														}
-													} else if f.Kind() == reflect.Struct { // take JSON string and unmarshal into struct
-														_v, ok := v.(string)
-														if ok {
-															s := reflect.New(f.Type()).Interface()
-															json.Unmarshal([]byte(_v), s)
-															f.Set(reflect.ValueOf(s).Elem())
-														}
-													} else if f.Kind() == reflect.Slice { // take JSON string and unmarshal into struct
-														_v, ok := v.(string)
-														if ok {
-															sSlice := reflect.SliceOf(f.Type().Elem())
-															s := reflect.New(sSlice)
-															json.Unmarshal([]byte(_v), s.Interface())
-															f.Set(s.Elem())
-														}
-													} else if f.Kind() == reflect.Ptr {
-														return errors.New("gremgoser does not currently support root level pointers")
-													}
-												} else if propSliceLen > 1 { // we need to creates slices for the properties
-													pSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), propSliceLen, propSliceLen+1)
-													// now we iterate over the properties
-													for i := 0; i < propSliceLen; i++ {
-														// get the value of the property we are looking for
-														v, err := getPropertyValue(propSlice.Index(i).Interface())
-														if err != nil {
-															return err
-														}
-														if f.Type().Elem().Kind() == reflect.String { // Set as string
-															_v, ok := v.(string)
-															if ok {
-																pSlice.Index(i).SetString(_v)
-															}
-														} else if f.Type().Elem().Kind() == reflect.Int || f.Type().Elem().Kind() == reflect.Int8 || f.Type().Elem().Kind() == reflect.Int16 || f.Type().Elem().Kind() == reflect.Int32 || f.Type().Elem().Kind() == reflect.Int64 { // Set as int
-															_v, ok := v.(float64)
-															__v := int64(_v)
-															if ok {
+											pSlice.Index(i).SetString(_v)
+										}
+									} else if f.Type().Elem().Kind() == reflect.Int || f.Type().Elem().Kind() == reflect.Int8 || f.Type().Elem().Kind() == reflect.Int16 || f.Type().Elem().Kind() == reflect.Int32 || f.Type().Elem().Kind() == reflect.Int64 { // Set as int
+										_v, ok := v.(float64)
+										__v := int64(_v)
+										if ok {
 
-																if !pSlice.Index(i).OverflowInt(__v) {
-																	pSlice.Index(i).SetInt(__v)
-																}
-															}
-														} else if f.Type().Elem().Kind() == reflect.Float32 || f.Type().Elem().Kind() == reflect.Float64 { // Set as float
-															_v, ok := v.(float64)
-															if ok {
-																if !pSlice.Index(i).OverflowFloat(_v) {
-																	pSlice.Index(i).SetFloat(_v)
-																}
-															}
-														} else if f.Type().Elem().Kind() == reflect.Uint || f.Type().Elem().Kind() == reflect.Uint8 || f.Type().Elem().Kind() == reflect.Uint16 || f.Type().Elem().Kind() == reflect.Uint32 || f.Type().Elem().Kind() == reflect.Uint64 { // Set as uint
-															_v, ok := v.(float64)
-															__v := uint64(_v)
-															if ok {
-
-																if !pSlice.Index(i).OverflowUint(__v) {
-																	pSlice.Index(i).SetUint(__v)
-																}
-															}
-														} else if f.Type().Elem().Kind() == reflect.Bool { // Set as bool
-															_v, ok := v.(bool)
-															if ok {
-																pSlice.Index(i).SetBool(_v)
-															}
-														}
-													}
-													// set the field to the created slice
-													f.Set(pSlice)
-												}
+											if !pSlice.Index(i).OverflowInt(__v) {
+												pSlice.Index(i).SetInt(__v)
 											}
+										}
+									} else if f.Type().Elem().Kind() == reflect.Float32 || f.Type().Elem().Kind() == reflect.Float64 { // Set as float
+										_v, ok := v.(float64)
+										if ok {
+											if !pSlice.Index(i).OverflowFloat(_v) {
+												pSlice.Index(i).SetFloat(_v)
+											}
+										}
+									} else if f.Type().Elem().Kind() == reflect.Uint || f.Type().Elem().Kind() == reflect.Uint8 || f.Type().Elem().Kind() == reflect.Uint16 || f.Type().Elem().Kind() == reflect.Uint32 || f.Type().Elem().Kind() == reflect.Uint64 { // Set as uint
+										_v, ok := v.(float64)
+										__v := uint64(_v)
+										if ok {
+
+											if !pSlice.Index(i).OverflowUint(__v) {
+												pSlice.Index(i).SetUint(__v)
+											}
+										}
+									} else if f.Type().Elem().Kind() == reflect.Bool { // Set as bool
+										_v, ok := v.(bool)
+										if ok {
+											pSlice.Index(i).SetBool(_v)
 										}
 									}
 								}
+								// set the field to the created slice
+								f.Set(pSlice)
 							}
-							// update slice
-							sSlice.Index(j).Set(s.Elem())
 						}
 					}
-					// Copy the new slice to the passed data slice
-					strct.Set(sSlice)
 				}
 			}
+			// update slice
+			sSlice.Index(j).Set(s.Elem())
 		}
-		return err
+		// Copy the new slice to the passed data slice
+		strct.Set(sSlice)
 	}
 	return ErrorConnectionDisposed
 }
@@ -395,7 +389,7 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 // UpdateV takes a interface and updates the vertex in the graph
 func (c *Client) UpdateV(data interface{}) (resp interface{}, err error) {
 	if !c.conn.isDisposed() {
-		d := reflect.ValueOf(data)
+		d := getValue(data)
 
 		id := d.FieldByName("Id")
 		if !id.IsValid() {
@@ -408,6 +402,9 @@ func (c *Client) UpdateV(data interface{}) (resp interface{}, err error) {
 
 		for i := 0; i < d.NumField(); i++ {
 			tag := d.Type().Field(i).Tag.Get("graph")
+			if tag == "" {
+				return nil, errors.New("interface does not contain any graph tags")
+			}
 			name, opts := parseTag(tag)
 			if len(name) == 0 && len(opts) == 0 {
 				continue
@@ -452,7 +449,7 @@ func (c *Client) UpdateV(data interface{}) (resp interface{}, err error) {
 // DropV takes a interface and drops the vertex from the graph
 func (c *Client) DropV(data interface{}) (resp interface{}, err error) {
 	if !c.conn.isDisposed() {
-		d := reflect.ValueOf(data)
+		d := getValue(data)
 
 		id := d.FieldByName("Id")
 		if !id.IsValid() {
@@ -471,13 +468,13 @@ func (c *Client) DropV(data interface{}) (resp interface{}, err error) {
 // AddE takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
 func (c *Client) AddE(label string, from, to interface{}) (resp interface{}, err error) {
 	if !c.conn.isDisposed() {
-		df := reflect.ValueOf(from)
+		df := getValue(from)
 		fid := df.FieldByName("Id")
 		if !fid.IsValid() {
 			return nil, errors.New("the passed from interface must have an Id field")
 		}
 
-		dt := reflect.ValueOf(to)
+		dt := getValue(to)
 		tid := dt.FieldByName("Id")
 		if !tid.IsValid() {
 			return nil, errors.New("the passed to interface must have an Id field")
@@ -503,13 +500,13 @@ func (c *Client) AddEById(label string, from, to uuid.UUID) (resp interface{}, e
 // AddEWithProps takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
 func (c *Client) AddEWithProps(label string, from, to interface{}, props map[string]interface{}) (resp interface{}, err error) {
 	if !c.conn.isDisposed() {
-		df := reflect.ValueOf(from)
+		df := getValue(from)
 		fid := df.FieldByName("Id")
 		if !fid.IsValid() {
 			return nil, errors.New("the passed from interface must have an Id field")
 		}
 
-		dt := reflect.ValueOf(to)
+		dt := getValue(to)
 		tid := dt.FieldByName("Id")
 		if !tid.IsValid() {
 			return nil, errors.New("the passed to interface must have an Id field")
@@ -545,13 +542,13 @@ func (c *Client) AddEWithPropsById(label string, from, to uuid.UUID, props map[s
 // DropE takes a label, from UUID and to UUID then drops the edge between the two vertex in the graph
 func (c *Client) DropE(label string, from, to interface{}) (resp interface{}, err error) {
 	if !c.conn.isDisposed() {
-		df := reflect.ValueOf(from)
+		df := getValue(from)
 		fid := df.FieldByName("Id")
 		if !fid.IsValid() {
 			return nil, errors.New("the passed from interface must have an Id field")
 		}
 
-		dt := reflect.ValueOf(to)
+		dt := getValue(to)
 		tid := dt.FieldByName("Id")
 		if !tid.IsValid() {
 			return nil, errors.New("the passed to interface must have an Id field")
@@ -598,4 +595,15 @@ func buildProps(props map[string]interface{}) (string, error) {
 		}
 	}
 	return q, nil
+}
+
+// getValue returns the underlying reflect.Value
+func getValue(data interface{}) reflect.Value {
+	var d reflect.Value
+	if reflect.ValueOf(data).Kind() != reflect.Ptr {
+		d = reflect.ValueOf(data)
+	} else {
+		d = reflect.ValueOf(data).Elem()
+	}
+	return d
 }

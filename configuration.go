@@ -1,42 +1,60 @@
 package gremgoser
 
-import "time"
+import (
+	"time"
 
-//DialerConfig is the struct for defining configuration for WebSocket dialer
-type DialerConfig func(*Ws)
+	"github.com/google/uuid"
+	"github.com/intwinelabs/logger"
+)
 
-//SetAuthentication sets on dialer credentials for authentication
-func SetAuthentication(username string, password string) DialerConfig {
-	return func(c *Ws) {
-		c.auth = &auth{username: username, password: password}
+// NewClientConfig returns a default client config
+func NewClientConfig(uri string) *ClientConfig {
+	return &ClientConfig{
+		URI:          uri,
+		Timeout:      5 * time.Second,
+		PingInterval: 60 * time.Second,
+		WritingWait:  15 * time.Second,
+		ReadingWait:  15 * time.Second,
 	}
 }
 
-//SetTimeout sets the dial timeout
-func SetTimeout(seconds int) DialerConfig {
-	return func(c *Ws) {
-		c.timeout = time.Duration(seconds) * time.Second
-	}
+// SetAuthentication sets on dialer credentials for authentication
+func (conf *ClientConfig) SetAuthentication(username string, password string) {
+	conf.AuthReq = prepareAuthRequest(uuid.New(), username, password)
 }
 
-//SetPingInterval sets the interval of ping sending for know is
-//connection is alive and in consequence the client is connected
-func SetPingInterval(seconds int) DialerConfig {
-	return func(c *Ws) {
-		c.pingInterval = time.Duration(seconds) * time.Second
-	}
+// SetDebug sets the debug flag
+func (conf *ClientConfig) SetDebug() {
+	conf.Debug = true
 }
 
-//SetWritingWait sets the time for waiting that writing occur
-func SetWritingWait(seconds int) DialerConfig {
-	return func(c *Ws) {
-		c.writingWait = time.Duration(seconds) * time.Second
-	}
+// SetVerbose sets the verbose flag
+func (conf *ClientConfig) SetVerbose() {
+	conf.Verbose = true
 }
 
-//SetReadingWait sets the time for waiting that reading occur
-func SetReadingWait(seconds int) DialerConfig {
-	return func(c *Ws) {
-		c.readingWait = time.Duration(seconds) * time.Second
-	}
+// SetTimeout sets the dial timeout
+func (conf *ClientConfig) SetTimeout(seconds int) {
+	conf.Timeout = time.Duration(seconds) * time.Second
+}
+
+// SetPingInterval sets the interval of ping sending for know is
+// connection is alive and in consequence the client is connected
+func (conf *ClientConfig) SetPingInterval(seconds int) {
+	conf.PingInterval = time.Duration(seconds) * time.Second
+}
+
+// SetWritingWait sets the time for waiting that writing occur
+func (conf *ClientConfig) SetWritingWait(seconds int) {
+	conf.WritingWait = time.Duration(seconds) * time.Second
+}
+
+// SetReadingWait sets the time for waiting that reading occur
+func (conf *ClientConfig) SetReadingWait(seconds int) {
+	conf.ReadingWait = time.Duration(seconds) * time.Second
+}
+
+// SetLogger sets the default logger
+func (conf *ClientConfig) SetLogger(logger *logger.Logger) {
+	conf.Logger = logger
 }

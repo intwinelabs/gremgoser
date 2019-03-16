@@ -2,129 +2,112 @@ package gremgoser
 
 import (
 	"encoding/json"
-	"errors"
+
+	"github.com/google/uuid"
 )
 
-type response struct {
-	data      interface{}
-	requestId string
-	code      int
-}
-
-func (c *Client) handleResponse(msg []byte) (err error) {
+func (c *Client) handleResponse(msg []byte) error {
 	resp, err := marshalResponse(msg)
-	if err != nil {
-		return
+	if err != nil && err != Error407Authenticate {
+		c.debug("error handling response: %s", err)
+		return err
 	}
 
-	if resp.code == 407 { //Server request authentication
-		return c.authenticate(resp.requestId)
+	c.verbose("handling response: %+v", resp)
+
+	if resp.Status.Code == 407 { //Server request authentication
+		return c.authenticate(resp.RequestId)
 	}
 
 	c.saveResponse(resp)
-	return
+	return nil
 }
 
 // marshalResponse creates a response struct for every incoming response for further manipulation
-func marshalResponse(msg []byte) (resp response, err error) {
-	var j map[string]interface{}
-	err = json.Unmarshal(msg, &j)
+func marshalResponse(msg []byte) (*GremlinResponse, error) {
+	resp := &GremlinResponse{}
+	err := json.Unmarshal(msg, resp)
 	if err != nil {
-		return
+		return resp, err
 	}
 
-	var status, result map[string]interface{}
-	var code float64
-	if _, ok := j["status"].(map[string]interface{}); ok {
-		status = j["status"].(map[string]interface{})
-	}
-	if _, ok := j["result"].(map[string]interface{}); ok {
-		result = j["result"].(map[string]interface{})
-	}
-	if _, ok := status["code"].(float64); ok {
-		code = status["code"].(float64)
-	}
-
-	resp.code = int(code)
-	err = responseDetectError(resp.code)
+	err = responseDetectError(resp.Status.Code)
 	if err != nil {
-		resp.data = err // Modify response vehicle to have error (if exists) as data
-	} else {
-		resp.data = result["data"]
+		return resp, err
 	}
-	err = nil
-	if _, ok := j["requestId"].(string); ok {
-		resp.requestId = j["requestId"].(string)
-	}
-	return
+	return resp, nil
 }
 
 // saveResponse makes the response available for retrieval by the requester. Mutexes are used for thread safety.
-func (c *Client) saveResponse(resp response) {
+func (c *Client) saveResponse(resp *GremlinResponse) {
 	c.respMutex.Lock()
-	var container []interface{}
-	existingData, ok := c.results.Load(resp.requestId) // Retrieve old data container (for requests with multiple responses)
+	var container []*GremlinData
+	existingData, ok := c.results.Load(resp.RequestId) // Retrieve old data container (for requests with multiple responses)
 	if ok {
-		container = existingData.([]interface{})
+		container = existingData.([]*GremlinData)
 	}
-	newdata := append(container, resp.data)  // Create new data container with new data
-	c.results.Store(resp.requestId, newdata) // Add new data to buffer for future retrieval
-	respNotifier, load := c.responseNotifier.LoadOrStore(resp.requestId, make(chan int, 1))
-	_ = load
-	if resp.code != 206 {
+	c.verbose("RequestId: %s, existing data: %+v", resp.RequestId, container)
+	for _, val := range resp.Result.Data {
+		container = append(container, val) //iterate over new items
+	}
+	c.verbose("RequestId: %s, new data: %+v", resp.RequestId, container)
+	c.results.Store(resp.RequestId, container) // Add new data to buffer for future retrieval
+	respNotifier, _ := c.responseNotifier.LoadOrStore(resp.RequestId, make(chan int, 1))
+	if resp.Status.Code != 206 {
 		respNotifier.(chan int) <- 1
 	}
 	c.respMutex.Unlock()
 }
 
 // retrieveResponse retrieves the response saved by saveResponse.
-func (c *Client) retrieveResponse(id string) (data []interface{}) {
+func (c *Client) retrieveResponse(id uuid.UUID) []*GremlinData {
+	data := []*GremlinData{}
 	resp, _ := c.responseNotifier.Load(id)
 	n := <-resp.(chan int)
 	if n == 1 {
 		if dataI, ok := c.results.Load(id); ok {
-			data = dataI.([]interface{})
+			data = dataI.([]*GremlinData)
 			close(resp.(chan int))
 			c.responseNotifier.Delete(id)
 			c.deleteResponse(id)
 		}
 	}
-	return
+	return data
 }
 
 // deleteRespones deletes the response from the container. Used for cleanup purposes by requester.
-func (c *Client) deleteResponse(id string) {
+func (c *Client) deleteResponse(id uuid.UUID) {
 	c.results.Delete(id)
 	return
 }
 
 // responseDetectError detects any possible errors in responses from Gremlin Server and generates an error for each code
-func responseDetectError(code int) (err error) {
-	switch {
-	case code == 200:
-		break
-	case code == 204:
-		break
-	case code == 206:
-		break
-	case code == 401:
-		err = errors.New("UNAUTHORIZED")
-	case code == 407:
-		err = errors.New("AUTHENTICATE")
-	case code == 498:
-		err = errors.New("MALFORMED REQUEST")
-	case code == 499:
-		err = errors.New("INVALID REQUEST ARGUMENTS")
-	case code == 500:
-		err = errors.New("SERVER ERROR")
-	case code == 597:
-		err = errors.New("SCRIPT EVALUATION ERROR")
-	case code == 598:
-		err = errors.New("SERVER TIMEOUT")
-	case code == 599:
-		err = errors.New("SERVER SERIALIZATION ERROR")
+func responseDetectError(code int) error {
+	switch code {
+	case 200:
+		return nil
+	case 204:
+		return nil
+	case 206:
+		return nil
+	case 401:
+		return Error401Unauthorized
+	case 407:
+		return Error407Authenticate
+	case 498:
+		return Error498MalformedRequest
+	case 499:
+		return Error499InvalidRequestArguments
+	case 500:
+		return Error500ServerError
+	case 597:
+		return Error597ScriptEvaluationError
+	case 598:
+		return Error598ServerTimeout
+	case 599:
+		return Error599ServerSerializationError
 	default:
-		err = errors.New("UNKNOWN ERROR")
+		return ErrorUnknownCode
 	}
-	return
+	return nil
 }

@@ -7,31 +7,16 @@ import (
 	"github.com/google/uuid"
 )
 
-/////
-
 type requester interface {
 	prepare() error
 	getID() string
-	getRequest() request
+	getRequest() *GremlinRequest
 }
-
-/////
-
-// request is a container for all evaluation request parameters to be sent to the Gremlin Server.
-type request struct {
-	RequestId string                 `json:"requestId"`
-	Op        string                 `json:"op"`
-	Processor string                 `json:"processor"`
-	Args      map[string]interface{} `json:"args"`
-}
-
-/////
 
 // prepareRequest packages a query and binding into the format that Gremlin Server accepts
-func prepareRequest(query string, bindings, rebindings map[string]string) (req request, id string, err error) {
-	id = uuid.New().String()
-
-	req.RequestId = id
+func prepareRequest(query string, bindings, rebindings map[string]string) *GremlinRequest {
+	req := &GremlinRequest{}
+	req.RequestId = uuid.New()
 	req.Op = "eval"
 	req.Processor = ""
 
@@ -41,11 +26,12 @@ func prepareRequest(query string, bindings, rebindings map[string]string) (req r
 	req.Args["bindings"] = bindings
 	req.Args["rebindings"] = rebindings
 
-	return
+	return req
 }
 
-//prepareAuthRequest creates a ws request for Gremlin Server
-func prepareAuthRequest(requestId string, username string, password string) (req request, err error) {
+// prepareAuthRequest creates a ws request for Gremlin Server
+func prepareAuthRequest(requestId uuid.UUID, username, password string) *GremlinRequest {
+	req := &GremlinRequest{}
 	req.RequestId = requestId
 	req.Op = "authentication"
 	req.Processor = "trasversal"
@@ -62,29 +48,24 @@ func prepareAuthRequest(requestId string, username string, password string) (req
 	req.Args = make(map[string]interface{})
 	req.Args["sasl"] = base64.StdEncoding.EncodeToString(simpleAuth)
 
-	return
+	return req
 }
 
-/////
-
 // formatMessage takes a request type and formats it into being able to be delivered to Gremlin Server
-func packageRequest(req request) (msg []byte, err error) {
-
+func packageRequest(req *GremlinRequest) ([]byte, error) {
+	msg := []byte{}
 	j, err := json.Marshal(req) // Formats request into byte format
 	if err != nil {
-		return
+		return msg, err
 	}
 	mimeType := []byte("!application/vnd.gremlin-v2.0+json")
 	msg = append(mimeType, j...)
 
-	return
+	return msg, nil
 }
 
-/////
-
-// dispactchRequest sends the request for writing to the remote Gremlin Server
+// dispatchRequest sends the request for writing to the remote Gremlin Server
 func (c *Client) dispatchRequest(msg []byte) {
+	c.verbose("dispatching request: %s", msg)
 	c.requests <- msg
 }
-
-/////

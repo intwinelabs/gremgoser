@@ -1,17 +1,12 @@
 package gremgoser
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
-	"sync"
-
 	"github.com/gorilla/websocket"
 )
-
-var NoAuth = errors.New("Client does not have a Secure Dialer for authenticate with the server")
 
 type dialer interface {
 	connect() error
@@ -20,35 +15,7 @@ type dialer interface {
 	write([]byte) error
 	read() ([]byte, error)
 	close() error
-	getAuth() (*auth, error)
 	ping(errs chan error)
-}
-
-/////
-/*
-WebSocket Connection
-*/
-/////
-
-// Ws is the dialer for a WebSocket connection
-type Ws struct {
-	host         string
-	conn         *websocket.Conn
-	auth         *auth
-	disposed     bool
-	connected    bool
-	pingInterval time.Duration
-	writingWait  time.Duration
-	readingWait  time.Duration
-	timeout      time.Duration
-	quit         chan struct{}
-	sync.RWMutex
-}
-
-//Auth is the container for authentication data of dialer
-type auth struct {
-	username string
-	password string
 }
 
 func (ws *Ws) connect() (err error) {
@@ -58,20 +25,21 @@ func (ws *Ws) connect() (err error) {
 		ReadBufferSize:   8192,
 		HandshakeTimeout: 5 * time.Second, // Timeout or else we'll hang forever and never fail on bad hosts.
 	}
-	ws.conn, resp, err = d.Dial(ws.host, http.Header{})
+	ws.conn, resp, err = d.Dial(ws.uri, http.Header{})
 	if err != nil {
 		// As of 3.2.2 the URL has changed.
 		// https://groups.google.com/forum/#!msg/gremlin-users/x4hiHsmTsHM/Xe4GcPtRCAAJ
-		ws.host = ws.host + "/gremlin"
-		ws.conn, resp, err = d.Dial(ws.host, http.Header{})
+		ws.uri = ws.uri + "/gremlin"
+		ws.conn, resp, err = d.Dial(ws.uri, http.Header{})
 	}
 
-	if err != nil {
+	if err != nil && resp != nil {
 		err = fmt.Errorf("WS connection error: %s: %s", resp.Status, err)
 	}
 
 	if err == nil {
 		ws.connected = true
+		ws.disposed = false
 		ws.conn.SetPongHandler(ws.pongHandler)
 	}
 	return
@@ -113,13 +81,6 @@ func (ws *Ws) close() (err error) {
 
 	err = ws.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")) //Cleanly close the connection with the server
 	return
-}
-
-func (ws *Ws) getAuth() (*auth, error) {
-	if ws.auth == nil {
-		return nil, NoAuth
-	}
-	return ws.auth, nil
 }
 
 func (ws *Ws) ping(errs chan error) {
@@ -171,7 +132,11 @@ func (c *Client) readWorker(errs chan error, quit chan struct{}) {
 			break
 		}
 		if msg != nil {
-			c.handleResponse(msg)
+			err := c.handleResponse(msg)
+			if err != nil {
+				errs <- err
+			}
+			c.verbose("Message handled...")
 		}
 
 		select {
