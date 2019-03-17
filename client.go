@@ -88,7 +88,7 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 // debug prints to the configured logger if debug is enabled
 func (c *Client) debug(frmt string, i ...interface{}) {
 	if c.conf.Debug {
-		c.conf.Logger.Infof("DEBUG: "+frmt, i...)
+		c.conf.Logger.InfoDepth(1, fmt.Sprintf("DEBUG: "+frmt, i...))
 	}
 }
 

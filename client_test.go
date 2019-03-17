@@ -60,28 +60,7 @@ type Test struct {
 	ZZ []Test2   `graph:"zz,[]struct"`
 }
 
-func TestNewDialer(t *testing.T) {
-	assert := assert.New(t)
-
-	// no conf
-	u := "ws://127.0.0.1"
-	ws := NewDialer(u)
-	assert.IsType(&Ws{}, ws)
-	assert.Equal(u, ws.host)
-	timeout := time.Duration(5000000000)
-	assert.Equal(timeout, ws.timeout)
-
-	// with conf
-	user := "foo"
-	pass := "bar"
-	conf := SetAuthentication(user, pass)
-	ws = NewDialer(u, conf)
-	assert.IsType(&Ws{}, ws)
-	assert.Equal(u, ws.host)
-	assert.Equal(timeout, ws.timeout)
-}
-
-func TestDial(t *testing.T) {
+func TestNewClient(t *testing.T) {
 	assert := assert.New(t)
 
 	// Create test server with the mock handler.
@@ -91,20 +70,15 @@ func TestDial(t *testing.T) {
 	// Convert http://127.0.0.1 to ws://127.0.0.
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
-	// test connecting to the mock server
-	ws := NewDialer(u)
-
-	// setup err channel
-	errs := make(chan error)
-	go func(chan error) {
-		err := <-errs
-		assert.Nil(err)
-	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
+	user := "foo"
+	pass := "bar"
+	conf := NewClientConfig(u)
+	conf.SetAuthentication(user, pass)
+	g, errs := NewClient(conf)
+	assert.IsType(&Client{}, g)
+	assert.IsType(make(chan error), errs)
+	assert.Equal(u, g.conf.URI)
+	assert.Equal(time.Duration(5000000000), g.conf.Timeout)
 }
 
 func TestExecute(t *testing.T) {
@@ -118,26 +92,23 @@ func TestExecute(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
 
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
-
 	// test query execution
 	q := "g.V()"
-	resp, err := c.Execute(q, nil, nil)
+	resp, err := g.Execute(q, nil, nil)
 	assert.Nil(err)
-	assert.NotNil(resp)
-	assert.Equal([]interface{}{[]interface{}{}}, resp)
+	assert.Nil(resp)
+	assert.Equal([]*GremlinData(nil), resp)
 }
 
 func TestAddV(t *testing.T) {
@@ -151,19 +122,16 @@ func TestAddV(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	// create test struct to pass as interface to AddV
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
@@ -388,7 +356,7 @@ func TestAddV(t *testing.T) {
 							"value": float64(100)}}},
 				"type": "vertex"}}}
 
-	resp, err := c.AddV("test", _t)
+	resp, err := g.AddV("test", _t)
 	assert.Nil(err)
 	assert.Equal(_tResp, resp)
 }
@@ -404,19 +372,16 @@ func TestUpdateV(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	// create test struct to pass as interface to AddV
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
@@ -641,7 +606,7 @@ func TestUpdateV(t *testing.T) {
 							"value": float64(100)}}},
 				"type": "vertex"}}}
 
-	resp, err := c.UpdateV(_t)
+	resp, err := g.UpdateV(_t)
 	assert.Nil(err)
 	assert.Equal(_tResp, resp)
 }
@@ -657,19 +622,16 @@ func TestDropV(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	// create test struct to pass as interface to AddV
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
@@ -722,7 +684,7 @@ func TestDropV(t *testing.T) {
 	}
 
 	_tResp := []interface{}([]interface{}{[]interface{}{}})
-	resp, err := c.DropV(_t)
+	resp, err := g.DropV(_t)
 	assert.Nil(err)
 	assert.Equal(_tResp, resp)
 }
@@ -738,19 +700,16 @@ func TestAddE(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t := Test{
@@ -833,7 +792,7 @@ func TestAddE(t *testing.T) {
 				"label":     "relates",
 				"outV":      "e3ff8f7d-0b29-4f4e-854a-affa3544b12a"}}})
 
-	resp, err := c.AddE("relates", _t, _t2)
+	resp, err := g.AddE("relates", _t, _t2)
 	assert.Nil(err)
 	assert.Equal(_resp, resp)
 }
@@ -849,19 +808,16 @@ func TestDropE(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t := Test{
@@ -935,7 +891,7 @@ func TestDropE(t *testing.T) {
 
 	_resp := []interface{}{[]interface{}{}}
 
-	resp, err := c.DropE("relates", _t, _t2)
+	resp, err := g.DropE("relates", _t, _t2)
 	assert.Nil(err)
 	assert.Equal(_resp, resp)
 }
@@ -951,19 +907,16 @@ func TestAddEById(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
@@ -979,7 +932,7 @@ func TestAddEById(t *testing.T) {
 				"label":     "relates",
 				"outV":      "e3ff8f7d-0b29-4f4e-854a-affa3544b12a"}}})
 
-	resp, err := c.AddEById("relates", _tUUID, _t2UUID)
+	resp, err := g.AddEById("relates", _tUUID, _t2UUID)
 	assert.Nil(err)
 	assert.Equal(_resp, resp)
 }
@@ -995,26 +948,23 @@ func TestDropEById(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
 
 	_resp := []interface{}{[]interface{}{}}
 
-	resp, err := c.DropEById("relates", _tUUID, _t2UUID)
+	resp, err := g.DropEById("relates", _tUUID, _t2UUID)
 	assert.Nil(err)
 	assert.Equal(_resp, resp)
 }
@@ -1030,19 +980,16 @@ func TestGet(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	// create test struct to pass as interface to AddV
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
@@ -1099,20 +1046,20 @@ func TestGet(t *testing.T) {
 
 	_ts := []Test{}
 	q := fmt.Sprintf("g.V('%s')", _t.Id)
-	err = c.Get(q, &_ts)
+	err := g.Get(q, &_ts)
 	assert.Nil(err)
 	assert.Equal(1, len(_ts))
 	assert.Equal(_t, _ts[0])
 
 	// test error not a slice
 	_ts2 := Test{}
-	err = c.Get(q, &_ts2)
+	err = g.Get(q, &_ts2)
 	_err := errors.New("the passed interface is not a slice")
 	assert.Equal(_err, err)
 
 	// test error not a ptr
 	_ts3 := []Test{}
-	err = c.Get(q, _ts3)
+	err = g.Get(q, _ts3)
 	_err = errors.New("the passed interface is not a ptr")
 	assert.Equal(_err, err)
 }
@@ -1128,10 +1075,12 @@ func TestDisposed(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		_err := &net.OpError{}
@@ -1139,16 +1088,11 @@ func TestDisposed(t *testing.T) {
 		assert.True(assert.IsType(_err, err) || assert.IsType(_errWs, err))
 	}(errs)
 
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
-
 	// dispose connection
-	err = c.conn.close()
+	err := g.conn.close()
 	assert.Nil(err)
 	q := "g.V()"
-	_, err = c.Execute(q, nil, nil)
+	_, err = g.Execute(q, nil, nil)
 	_err := errors.New("you cannot write on a disposed connection")
 	assert.Equal(_err, err)
 
@@ -1225,34 +1169,34 @@ func TestDisposed(t *testing.T) {
 
 	_ts := []Test{}
 	q = fmt.Sprintf("g.V('%s')", &_t.Id)
-	err = c.Get(q, _ts)
+	err = g.Get(q, _ts)
 	assert.Equal(_err, err)
 
-	_, err = c.AddV("test", _t)
+	_, err = g.AddV("test", _t)
 	assert.Equal(_err, err)
 
-	_, err = c.DropV(_t)
+	_, err = g.DropV(_t)
 	assert.Equal(_err, err)
 
-	_, err = c.UpdateV(_t)
+	_, err = g.UpdateV(_t)
 	assert.Equal(_err, err)
 
-	_, err = c.AddE("relates", _t, _t2)
+	_, err = g.AddE("relates", _t, _t2)
 	assert.Equal(_err, err)
 
-	_, err = c.AddEById("relates", _t.Id, _t2.Id)
+	_, err = g.AddEById("relates", _t.Id, _t2.Id)
 	assert.Equal(_err, err)
 
-	_, err = c.AddEWithProps("relates", _t, _t2, nil)
+	_, err = g.AddEWithProps("relates", _t, _t2, nil)
 	assert.Equal(_err, err)
 
-	_, err = c.AddEWithPropsById("relates", _t.Id, _t2.Id, nil)
+	_, err = g.AddEWithPropsById("relates", _t.Id, _t2.Id, nil)
 	assert.Equal(_err, err)
 
-	_, err = c.DropE("relates", _t, _t2)
+	_, err = g.DropE("relates", _t, _t2)
 	assert.Equal(_err, err)
 
-	_, err = c.DropEById("relates", _t.Id, _t2.Id)
+	_, err = g.DropEById("relates", _t.Id, _t2.Id)
 	assert.Equal(_err, err)
 }
 
@@ -1295,10 +1239,12 @@ func TestClientClose(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		_err := &net.OpError{}
@@ -1306,11 +1252,7 @@ func TestClientClose(t *testing.T) {
 		assert.True(assert.IsType(_err, err) || assert.IsType(_errWs, err))
 	}(errs)
 
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
-	c.Close()
+	g.Close()
 }
 
 func TestAddEWithProps(t *testing.T) {
@@ -1324,19 +1266,16 @@ func TestAddEWithProps(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t := Test{
@@ -1423,9 +1362,9 @@ func TestAddEWithProps(t *testing.T) {
 
 	var props map[string]interface{}
 	maps := []byte(`{"foo":"bar","biz":3}`)
-	err = json.Unmarshal(maps, &props)
+	err := json.Unmarshal(maps, &props)
 	assert.Nil(err)
-	resp, err := c.AddEWithProps("relates", _t, _t2, props)
+	resp, err := g.AddEWithProps("relates", _t, _t2, props)
 	assert.Nil(err)
 	assert.Equal(_resp, resp)
 }
@@ -1441,19 +1380,16 @@ func TestAddEWithPropsById(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	g, errs := NewClient(NewClientConfig(u))
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
 
 	// setup err channel
-	errs := make(chan error)
 	go func(chan error) {
 		err := <-errs
 		assert.Nil(err)
 	}(errs)
-
-	c, err := Dial(ws, errs)
-	assert.Nil(err)
-	assert.NotNil(c)
-	assert.IsType(Client{}, c)
 
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
@@ -1473,9 +1409,9 @@ func TestAddEWithPropsById(t *testing.T) {
 
 	var props map[string]interface{}
 	maps := []byte(`{"baz":["foo","bar"]}`)
-	err = json.Unmarshal(maps, &props)
+	err := json.Unmarshal(maps, &props)
 	assert.Nil(err)
-	resp, err := c.AddEWithPropsById("relates", _tUUID, _t2UUID, props)
+	resp, err := g.AddEWithPropsById("relates", _tUUID, _t2UUID, props)
 	assert.Nil(err)
 	assert.Equal(_resp, resp)
 

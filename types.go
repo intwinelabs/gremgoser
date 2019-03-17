@@ -74,21 +74,26 @@ type GremlinRequest struct {
 }
 
 type GremlinResponse struct {
-	RequestId uuid.UUID `json:"requestId,string"`
-	Status    struct {
-		Code       int `json:"code"`
-		Attributes struct {
-			XMsStatusCode         int     `json:"x-ms-status-code"`
-			XMsRequestCharge      float32 `json:"x-ms-request-charge"`
-			XMsTotalRequestCharge float32 `json:"x-ms-total-request-charge"`
-		} `json:"attributes"`
-		Message string `json:"message"`
-	} `json:"status"`
-	Result struct {
-		Data []*GremlinData `json:"data"`
-		Meta struct {
-		} `json:"meta"`
-	} `json:"result"`
+	RequestId uuid.UUID     `json:"requestId,string"`
+	Status    GremlinStatus `json:"status"`
+	Result    GremlinResult `json:"result"`
+}
+
+type GremlinStatus struct {
+	Code       int                     `json:"code"`
+	Attributes GremlinStatusAttributes `json:"attributes"`
+	Message    string                  `json:"message"`
+}
+
+type GremlinStatusAttributes struct {
+	XMsStatusCode         int     `json:"x-ms-status-code"`
+	XMsRequestCharge      float32 `json:"x-ms-request-charge"`
+	XMsTotalRequestCharge float32 `json:"x-ms-total-request-charge"`
+}
+
+type GremlinResult struct {
+	Data []*GremlinData `json:"data"`
+	Meta interface{}    `json:"meta"`
 }
 
 type GremlinData struct {

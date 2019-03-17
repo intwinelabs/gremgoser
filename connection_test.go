@@ -116,7 +116,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 		mimeType := []byte("!application/vnd.gremlin-v2.0+json")
 		msg := bytes.SplitAfter(message, mimeType)
 		if len(msg) == 2 {
-			var req request
+			var req GremlinRequest
 			err := json.Unmarshal(msg[1], &req)
 			if err != nil {
 				break
@@ -125,7 +125,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("------>   Mock Server Request: %s\n", gremlin)
 			switch gremlin {
 			case string(gremV): // query the whole graph and return a empty graph
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(vResp), &resp)
 				if err != nil {
 					break
@@ -140,7 +140,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremE): // query add edge
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(addEResp), &resp)
 				if err != nil {
 					break
@@ -155,7 +155,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremEWithProps): // query add edge with props
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(addEWithPropsResp), &resp)
 				if err != nil {
 					break
@@ -170,7 +170,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremEWithProps2): // query add edge with props with alternate map order
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(addEWithPropsResp), &resp)
 				if err != nil {
 					break
@@ -185,7 +185,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremEWithPropsSlice): // query add edge with props
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(addEWithPropsResp), &resp)
 				if err != nil {
 					break
@@ -200,7 +200,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremDropE): // query drop edge
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(vResp), &resp)
 				if err != nil {
 					break
@@ -215,7 +215,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremV1): // query add vertex
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(addV1Resp), &resp)
 				if err != nil {
 					break
@@ -230,7 +230,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremUpdateV1): // query update vertex
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(addV1Resp), &resp)
 				if err != nil {
 					break
@@ -245,7 +245,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremDropV1): // query drop vertex
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(vResp), &resp)
 				if err != nil {
 					break
@@ -260,7 +260,7 @@ func mock(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			case string(gremGet): // query get vertex
-				var resp gremlinResponse
+				var resp GremlinResponse
 				err := json.Unmarshal([]byte(getResp), &resp)
 				if err != nil {
 					break
@@ -301,7 +301,7 @@ func TestWsConnection(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := NewDialer(u)
+	ws := Ws{uri: u}
 	err := ws.connect()
 	assert.Nil(err)
 
@@ -323,11 +323,6 @@ func TestWsConnection(t *testing.T) {
 	_resp := []byte("TEST")
 	assert.Equal(_resp, resp)
 
-	// test get auth
-	auth, err := ws.getAuth()
-	assert.Nil(auth)
-	assert.Equal(NoAuth, err)
-
 	// test ping
 	ws.pingInterval = time.Duration(10) * time.Millisecond
 	errs := make(chan error)
@@ -342,7 +337,7 @@ func TestWsConnection(t *testing.T) {
 	time.Sleep(time.Duration(15) * time.Millisecond)
 
 	// test close
-	ws2 := NewDialer(u)
+	ws2 := Ws{uri: u}
 	err = ws2.connect()
 	assert.Nil(err)
 	err = ws2.close()
@@ -360,7 +355,7 @@ func TestWsConnectionError(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the hello server
-	ws := NewDialer(u)
+	ws := Ws{uri: u}
 	err := ws.connect()
 	_err := errors.New("WS connection error: 200 OK: websocket: bad handshake")
 	assert.Equal(_err, err)
@@ -377,7 +372,7 @@ func TestWsConnectiongPongHandler(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the ping server
-	ws := NewDialer(u)
+	ws := Ws{uri: u}
 	err := ws.connect()
 	assert.Equal(nil, err)
 
