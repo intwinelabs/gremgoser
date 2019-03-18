@@ -191,6 +191,10 @@ func (c *Client) Get(query string, ptr interface{}) error {
 			for i := 0; i < s.Elem().NumField(); i++ {
 				// get graph tag for field
 				tag := sType.Field(i).Tag.Get("graph")
+				if tag == "" {
+					c.verbose("field: %s, has no graph tag", sType.Field(i).Name)
+					return ErrorNoGraphTags
+				}
 				name, opts := parseTag(tag)
 				if len(name) == 0 && len(opts) == 0 {
 					continue
@@ -364,6 +368,9 @@ func (c *Client) AddV(label string, data interface{}) (resp interface{}, err err
 
 		for i := 0; i < d.NumField(); i++ {
 			tag := d.Type().Field(i).Tag.Get("graph")
+			if tag == "" {
+				return nil, ErrorNoGraphTags
+			}
 			name, opts := parseTag(tag)
 			if len(name) == 0 && len(opts) == 0 {
 				continue

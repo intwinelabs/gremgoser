@@ -12,6 +12,7 @@ import (
 
 var (
 	ErrorWSConnection                = errors.New("error connecting to websocket")
+	ErrorNoGraphTags                 = errors.New("error no graph tags")
 	ErrorConnectionDisposed          = errors.New("you cannot write on a disposed connection")
 	ErrorInvalidURI                  = errors.New("invalid uri supplied in config")
 	ErrorNoAuth                      = errors.New("client does not have a secure dialer for authentication with the server")
