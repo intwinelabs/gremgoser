@@ -34,7 +34,7 @@ func prepareAuthRequest(requestId uuid.UUID, username, password string) *Gremlin
 	req := &GremlinRequest{}
 	req.RequestId = requestId
 	req.Op = "authentication"
-	req.Processor = "trasversal"
+	req.Processor = "traversal"
 
 	var simpleAuth []byte
 	user := []byte(username)

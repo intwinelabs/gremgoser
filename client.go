@@ -84,7 +84,7 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	go c.conn.ping(errs)
 
 	// force auth with a execution
-	c.Execute("g.V('__foobar__')", nil, nil)
+	c.Execute("g.V('__force__auth__')", nil, nil)
 
 	return c, errs
 }
