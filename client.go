@@ -94,6 +94,11 @@ func (c *Client) Reconnect() {
 	}
 }
 
+// IsConnected return bool
+func (c *Client) IsConnected() bool {
+	return c.conn.isConnected()
+}
+
 // debug prints to the configured logger if debug is enabled
 func (c *Client) debug(frmt string, i ...interface{}) {
 	if c.conf.Debug {
