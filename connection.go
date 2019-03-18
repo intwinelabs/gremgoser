@@ -1,7 +1,6 @@
 package gremgoser
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -18,8 +17,9 @@ type dialer interface {
 	ping(errs chan error)
 }
 
-func (ws *Ws) connect() (err error) {
+func (ws *Ws) connect() error {
 	var resp *http.Response
+	var err error
 	d := websocket.Dialer{
 		WriteBufferSize:  8192,
 		ReadBufferSize:   8192,
@@ -33,8 +33,8 @@ func (ws *Ws) connect() (err error) {
 		ws.conn, resp, err = d.Dial(ws.uri, http.Header{})
 	}
 
-	if err != nil && resp != nil {
-		err = fmt.Errorf("WS connection error: %s: %s", resp.Status, err)
+	if err != nil && resp == nil {
+		return ErrorWSConnection
 	}
 
 	if err == nil {
@@ -42,7 +42,7 @@ func (ws *Ws) connect() (err error) {
 		ws.disposed = false
 		ws.conn.SetPongHandler(ws.pongHandler)
 	}
-	return
+	return nil
 }
 
 func (ws *Ws) pongHandler(appData string) error {
@@ -60,27 +60,26 @@ func (ws *Ws) isDisposed() bool {
 	return ws.disposed
 }
 
-func (ws *Ws) write(msg []byte) (err error) {
+func (ws *Ws) write(msg []byte) error {
 	ws.conn.SetWriteDeadline(time.Now().Add(ws.writingWait))
-	err = ws.conn.WriteMessage(2, msg)
-	return
+	return ws.conn.WriteMessage(2, msg)
 }
 
-func (ws *Ws) read() (msg []byte, err error) {
+func (ws *Ws) read() ([]byte, error) {
 	ws.conn.SetReadDeadline(time.Now().Add(ws.readingWait))
-	_, msg, err = ws.conn.ReadMessage()
-	return
+	_, msg, err := ws.conn.ReadMessage()
+	return msg, err
 }
 
-func (ws *Ws) close() (err error) {
+func (ws *Ws) close() error {
 	defer func() {
 		close(ws.quit)
 		ws.conn.Close()
 		ws.disposed = true
 	}()
 
-	err = ws.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")) //Cleanly close the connection with the server
-	return
+	err := ws.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")) //Cleanly close the connection with the server
+	return err
 }
 
 func (ws *Ws) ping(errs chan error) {

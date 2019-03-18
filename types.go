@@ -5,13 +5,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/intwinelabs/logger"
-
-	"github.com/google/uuid"
 )
 
 var (
+	ErrorWSConnection                = errors.New("error connecting to websocket")
 	ErrorConnectionDisposed          = errors.New("you cannot write on a disposed connection")
 	ErrorInvalidURI                  = errors.New("invalid uri supplied in config")
 	ErrorNoAuth                      = errors.New("client does not have a secure dialer for authentication with the server")
