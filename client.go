@@ -349,7 +349,7 @@ func (c *Client) Close() {
 // AddV takes a label and a interface and adds it a vertex to the graph
 func (c *Client) AddV(label string, data interface{}) (resp interface{}, err error) {
 	if !c.conn.isDisposed() {
-		d := reflect.ValueOf(data)
+		d := getValue(data)
 
 		id := d.FieldByName("Id")
 		if !id.IsValid() {
