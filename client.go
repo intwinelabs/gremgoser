@@ -83,6 +83,9 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	go c.readWorker(errs, quit)
 	go c.conn.ping(errs)
 
+	// force auth with a execution
+	c.Execute("g.V('__foobar__')", nil, nil)
+
 	return c, errs
 }
 
@@ -90,7 +93,9 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 func (c *Client) Reconnect() {
 	if !c.conn.isConnected() {
 		err := c.conn.connect()
-		c.errs <- err
+		if err != nil {
+			c.errs <- err
+		}
 	}
 }
 
