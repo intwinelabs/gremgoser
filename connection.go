@@ -96,7 +96,6 @@ func (ws *Ws) ping(errs chan error) {
 			ws.Lock()
 			ws.connected = connected
 			ws.Unlock()
-
 		case <-ws.quit:
 			return
 		}
@@ -114,7 +113,6 @@ func (c *Client) writeWorker(errs chan error, quit chan struct{}) {
 				c.Errored = true
 				break
 			}
-
 		case <-quit:
 			return
 		}
@@ -137,7 +135,6 @@ func (c *Client) readWorker(errs chan error, quit chan struct{}) {
 			}
 			c.verbose("Message handled...")
 		}
-
 		select {
 		case <-quit:
 			return
