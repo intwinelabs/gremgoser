@@ -85,6 +85,14 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	return c, errs
 }
 
+// Reconnect trys to reconnect the underlying ws connection
+func (c *Client) Reconnect() error {
+	if !c.conn.isConnected() {
+		return c.conn.connect()
+	}
+	return nil
+}
+
 // debug prints to the configured logger if debug is enabled
 func (c *Client) debug(frmt string, i ...interface{}) {
 	if c.conf.Debug {
