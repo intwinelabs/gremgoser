@@ -34,6 +34,7 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	}
 
 	c := newClient(conf)
+	c.errs = errs
 
 	ws := &Ws{
 		uri:       conf.URI,
@@ -72,7 +73,7 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	err := c.conn.connect()
 	if err != nil {
 		c.debug("error connecting to %s: %s", conf.URI, err)
-		errs <- err
+		errs <- ErrorWSConnection
 		return nil, errs
 	}
 
@@ -86,11 +87,11 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 }
 
 // Reconnect trys to reconnect the underlying ws connection
-func (c *Client) Reconnect() error {
+func (c *Client) Reconnect() {
 	if !c.conn.isConnected() {
-		return c.conn.connect()
+		err := c.conn.connect()
+		c.errs <- err
 	}
-	return nil
 }
 
 // debug prints to the configured logger if debug is enabled

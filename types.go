@@ -45,6 +45,7 @@ type Client struct {
 	conn             dialer
 	requests         chan []byte
 	responses        chan []byte
+	errs             chan error
 	results          *sync.Map
 	responseNotifier *sync.Map // responseNotifier notifies the requester that a response has arrived for the request
 	respMutex        *sync.Mutex
