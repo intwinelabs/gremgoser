@@ -54,17 +54,17 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	if conf.PingInterval != 0 {
 		ws.pingInterval = conf.PingInterval
 	} else {
-		ws.pingInterval = 60 * time.Second
+		ws.pingInterval = 5 * time.Second
 	}
 	if conf.WritingWait != 0 {
 		ws.writingWait = conf.WritingWait
 	} else {
-		ws.writingWait = 15 * time.Second
+		ws.writingWait = 10 * time.Second
 	}
 	if conf.ReadingWait != 0 {
 		ws.readingWait = conf.ReadingWait
 	} else {
-		ws.readingWait = 15 * time.Second
+		ws.readingWait = 10 * time.Second
 	}
 	c.conn = ws
 	c.conf = conf
