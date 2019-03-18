@@ -336,7 +336,7 @@ func getPropertyValue(prop interface{}) (interface{}, error) {
 		return p.Value, nil
 
 	}
-	return nil, errors.New("passed property cannot be cast")
+	return nil, fmt.Errorf("passed property cannot be cast: %v", prop)
 }
 
 // Close closes the underlying connection and marks the client as closed.
