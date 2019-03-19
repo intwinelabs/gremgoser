@@ -1,6 +1,7 @@
 package gremgoser
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -54,7 +55,7 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	if conf.PingInterval != 0 {
 		ws.pingInterval = conf.PingInterval
 	} else {
-		ws.pingInterval = 5 * time.Second
+		ws.pingInterval = 1 * time.Second
 	}
 	if conf.WritingWait != 0 {
 		ws.writingWait = conf.WritingWait
@@ -83,6 +84,11 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	go c.readWorker(c.errs, quit)
 	go c.conn.ping(c.errs)
 
+	// Force authentication
+	if c.conf.AuthReq != nil {
+		c.Execute("g.V('__FORCE____AUTH__')", nil, nil)
+	}
+
 	return c, c.errs
 }
 
@@ -92,6 +98,11 @@ func (c *Client) Reconnect() {
 		err := c.conn.connect()
 		if err != nil {
 			c.errs <- err
+		} else {
+			// Force authentication
+			if c.conf.AuthReq != nil {
+				c.Execute("g.V('__FORCE____AUTH__')", nil, nil)
+			}
 		}
 	}
 }
@@ -362,7 +373,7 @@ func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
 		if len(opts) == 0 {
 			return nil, fmt.Errorf("gremgoser: interface field graph tag does not contain a tag option type, field type: %T", val)
 		} else if opts.Contains("string") {
-			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", val)))
 		} else if opts.Contains("bool") || opts.Contains("number") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
 		} else if opts.Contains("struct") || opts.Contains("[]struct") {
@@ -374,7 +385,7 @@ func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
 		} else if opts.Contains("[]string") {
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
-				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, s.Index(i).Interface())
+				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", s.Index(i).Interface())))
 			}
 		} else if opts.Contains("[]bool") || opts.Contains("[]number") {
 			s := reflect.ValueOf(val)
@@ -410,7 +421,7 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
 	for i := 0; i < d.NumField(); i++ {
 		tag := d.Type().Field(i).Tag.Get("graph")
 		name, opts := parseTag(tag)
-		if len(name) == 0 && len(opts) == 0 {
+		if (len(name) == 0 && len(opts) == 0) || d.Type().Field(i).Name == "Id" {
 			continue
 		}
 		tagLength++
@@ -418,7 +429,7 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
 		if len(opts) == 0 {
 			return nil, fmt.Errorf("gremgoser: interface field graph tag does not contain a tag option type, field type: %T", val)
 		} else if opts.Contains("string") {
-			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, val)
+			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", val)))
 		} else if opts.Contains("bool") || opts.Contains("number") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
 		} else if opts.Contains("struct") || opts.Contains("[]struct") {
@@ -430,7 +441,7 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
 		} else if opts.Contains("[]string") {
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
-				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, s.Index(i).Interface())
+				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", s.Index(i).Interface())))
 			}
 		} else if opts.Contains("[]bool") || opts.Contains("[]number") {
 			s := reflect.ValueOf(val)
@@ -587,11 +598,7 @@ func buildProps(props map[string]interface{}) (string, error) {
 		} else if t == reflect.Slice {
 			s := reflect.ValueOf(v)
 			for i := 0; i < s.Len(); i++ {
-				if _, ok := s.Index(i).Interface().(string); ok {
-					q = fmt.Sprintf("%s.property('%s', '%s')", q, k, s.Index(i).Interface())
-				} else {
-					q = fmt.Sprintf("%s.property('%s', %v)", q, k, s.Index(i).Interface())
-				}
+				q = fmt.Sprintf("%s.property('%s', '%s')", q, k, escapeString(fmt.Sprintf("%s", s.Index(i).Interface())))
 			}
 		} else {
 			return "", ErrorUnsupportedPropertyMap
@@ -609,4 +616,17 @@ func getValue(data interface{}) reflect.Value {
 		d = reflect.ValueOf(data).Elem()
 	}
 	return d
+}
+
+// escapeString takes a string escapes
+func escapeString(str string) string {
+	var buf bytes.Buffer
+	for _, char := range str {
+		switch char {
+		case '\'', '"', '\\':
+			buf.WriteRune('\\')
+		}
+		buf.WriteRune(char)
+	}
+	return buf.String()
 }

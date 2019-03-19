@@ -37,13 +37,15 @@ type gremlinResponse struct {
 
 var upgrader = websocket.Upgrader{}
 
+var gremForceAuth = `g.V('__FORCE____AUTH__')`
+
 var gremV = `g.V()`
 
 var gremGet = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461')`
 
 var gremV1 = `g.addV('test').property('id', '64795211-c4a1-4eac-9e0a-b674ced77461').property('a', 'aa').property('b', 10).property('c', 20).property('d', 30).property('e', 40).property('f', 50).property('g', 0.06).property('h', 0.07).property('i', 80).property('j', 90).property('k', 100).property('l', 110).property('m', 120).property('n', true).property('aa', 'aa').property('aa', 'aa').property('bb', 10).property('bb', 10).property('cc', 20).property('cc', 20).property('dd', 30).property('dd', 30).property('ee', 40).property('ee', 40).property('ff', 50).property('ff', 50).property('gg', 0.06).property('gg', 0.06).property('hh', 0.07).property('hh', 0.07).property('ii', 80).property('ii', 80).property('jj', 90).property('jj', 90).property('kk', 100).property('kk', 100).property('ll', 110).property('ll', 110).property('mm', 120).property('mm', 120).property('nn', true).property('nn', true).property('x', 130).property('xx', 140).property('xx', 140).property('z', '{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}').property('zz', '[{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10},{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}]')`
 
-var gremUpdateV1 = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').property('id', '64795211-c4a1-4eac-9e0a-b674ced77461').property('a', 'aa').property('b', 10).property('c', 20).property('d', 30).property('e', 40).property('f', 50).property('g', 0.06).property('h', 0.07).property('i', 80).property('j', 90).property('k', 100).property('l', 110).property('m', 120).property('n', true).property('aa', 'aa').property('aa', 'aa').property('bb', 10).property('bb', 10).property('cc', 20).property('cc', 20).property('dd', 30).property('dd', 30).property('ee', 40).property('ee', 40).property('ff', 50).property('ff', 50).property('gg', 0.06).property('gg', 0.06).property('hh', 0.07).property('hh', 0.07).property('ii', 80).property('ii', 80).property('jj', 90).property('jj', 90).property('kk', 100).property('kk', 100).property('ll', 110).property('ll', 110).property('mm', 120).property('mm', 120).property('nn', true).property('nn', true).property('x', 130).property('xx', 140).property('xx', 140).property('z', '{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}').property('zz', '[{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10},{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}]')`
+var gremUpdateV1 = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').property('a', 'aa').property('b', 10).property('c', 20).property('d', 30).property('e', 40).property('f', 50).property('g', 0.06).property('h', 0.07).property('i', 80).property('j', 90).property('k', 100).property('l', 110).property('m', 120).property('n', true).property('aa', 'aa').property('aa', 'aa').property('bb', 10).property('bb', 10).property('cc', 20).property('cc', 20).property('dd', 30).property('dd', 30).property('ee', 40).property('ee', 40).property('ff', 50).property('ff', 50).property('gg', 0.06).property('gg', 0.06).property('hh', 0.07).property('hh', 0.07).property('ii', 80).property('ii', 80).property('jj', 90).property('jj', 90).property('kk', 100).property('kk', 100).property('ll', 110).property('ll', 110).property('mm', 120).property('mm', 120).property('nn', true).property('nn', true).property('x', 130).property('xx', 140).property('xx', 140).property('z', '{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}').property('zz', '[{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10},{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}]')`
 
 var gremDropV1 = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').drop()`
 
@@ -123,6 +125,21 @@ func mock(w http.ResponseWriter, r *http.Request) {
 			gremlin := req.Args["gremlin"]
 			fmt.Printf("------>   Mock Server Request: %s\n", gremlin)
 			switch gremlin {
+			case string(gremForceAuth): // FORCE AUTH
+				var resp GremlinResponse
+				err := json.Unmarshal([]byte(vResp), &resp)
+				if err != nil {
+					break
+				}
+				resp.RequestId = req.RequestId
+				respMessage, err := json.Marshal(resp)
+				if err != nil {
+					break
+				}
+				err = c.WriteMessage(mt, respMessage)
+				if err != nil {
+					break
+				}
 			case string(gremV): // query the whole graph and return a empty graph
 				var resp GremlinResponse
 				err := json.Unmarshal([]byte(vResp), &resp)

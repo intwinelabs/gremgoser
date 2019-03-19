@@ -12,7 +12,7 @@ func NewClientConfig(uri string) *ClientConfig {
 	return &ClientConfig{
 		URI:          uri,
 		Timeout:      5 * time.Second,
-		PingInterval: 5 * time.Second,
+		PingInterval: 1 * time.Second,
 		WritingWait:  10 * time.Second,
 		ReadingWait:  10 * time.Second,
 	}
