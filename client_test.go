@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -185,261 +183,52 @@ func TestAddV(t *testing.T) {
 		},
 	}
 
-	/*_tResp := []*gremgoser.GremlinData{
-			&GremlinData{
-		{
-	  Id: _tUUID,
-	  Label: "test",
-	  Type: "vertex",
-	  Properties: map[string][]gremgoser.GremlinProperty
-	    "j": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) e7235d64-4212-448d-869f-612cf2403b96,
-	     Value: (float64) 90
-	    }
-	   },
-	   (string) (len=1) "n": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 954cc7f9-d655-4123-a66d-e3e665cf7d49,
-	     Value: (bool) true
-	    }
-	   },
-	   (string) (len=2) "aa": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 225ed5a7-b000-4a59-b6c3-332682a5216a,
-	     Value: (string) (len=2) "aa"
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 9cbee039-c5b4-4e75-a1b0-346a47e5dc36,
-	     Value: (string) (len=2) "aa"
-	    }
-	   },
-	   (string) (len=1) "b": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 91df576d-3501-4303-9d89-1c8409ce6ff4,
-	     Value: (float64) 10
-	    }
-	   },
-	   (string) (len=2) "hh": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) b2266aff-1f18-4391-98f8-5ad6a542a2e1,
-	     Value: (float64) 0.07
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 709a88dd-8fc4-4c8d-bd31-61962feff9b2,
-	     Value: (float64) 0.07
-	    }
-	   },
-	   (string) (len=1) "e": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) bf35b756-0640-48c6-9601-aab77c6aa603,
-	     Value: (float64) 40
-	    }
-	   },
-	   (string) (len=1) "i": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 2295b3de-fc5b-42c9-8b04-44b12fbe1346,
-	     Value: (float64) 80
-	    }
-	   },
-	   (string) (len=1) "g": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 2c6860ac-7151-48f9-b866-5b40a3488d1e,
-	     Value: (float64) 0.06
-	    }
-	   },
-	   (string) (len=2) "gg": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) a0a129f4-bfa4-4d1a-bc77-df5b63049197,
-	     Value: (float64) 0.06
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 3c8b51c4-8b40-4d5f-a79d-6a9d74929837,
-	     Value: (float64) 0.06
-	    }
-	   },
-	   (string) (len=2) "ii": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) fe3a148a-4a80-4ca2-851b-5dc473f549e6,
-	     Value: (float64) 80
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f,
-	     Value: (float64) 80
-	    }
-	   },
-	   (string) (len=2) "kk": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 740dca9e-c5d7-40d3-8d68-feb48090a638,
-	     Value: (float64) 100
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) a0587e7d-6bf5-4cba-b911-0507d0469068,
-	     Value: (float64) 100
-	    }
-	   },
-	   (string) (len=1) "m": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) a4b507fe-bb16-4b4a-aa1d-cf922af67cd2,
-	     Value: (float64) 120
-	    }
-	   },
-	   (string) (len=2) "mm": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 0487cc86-ee49-4649-8131-d43610235c40,
-	     Value: (float64) 120
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12,
-	     Value: (float64) 120
-	    }
-	   },
-	   (string) (len=1) "c": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 8e58d327-e06b-44e4-a5d9-75558cdca2dc,
-	     Value: (float64) 20
-	    }
-	   },
-	   (string) (len=1) "d": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 565d7400-e75b-4813-aa39-6c09cae781a8,
-	     Value: (float64) 30
-	    }
-	   },
-	   (string) (len=2) "nn": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 7af1d164-3966-4dde-93fa-511a936601f5,
-	     Value: (bool) true
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 90be7e5c-8bf6-4bfd-bd01-38be1697d9f8,
-	     Value: (bool) true
-	    }
-	   },
-	   (string) (len=1) "x": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 56b71ade-d0aa-416f-8da3-517391fd7ee4,
-	     Value: (float64) 130
-	    }
-	   },
-	   (string) (len=2) "cc": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 8f16c7cd-4125-4d29-b714-5d8f561bb8e4,
-	     Value: (float64) 20
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 84f44c14-f038-47b3-a0b7-9f14dd11ddde,
-	     Value: (float64) 20
-	    }
-	   },
-	   (string) (len=1) "h": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 3e16edbc-5a77-4b97-bdb4-4695996d8915,
-	     Value: (float64) 0.07
-	    }
-	   },
-	   (string) (len=2) "jj": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 84e17824-94be-47e9-b7bb-7e46ed5c065f,
-	     Value: (float64) 90
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 20dffbe0-4c63-4b15-9b5d-43111bd10525,
-	     Value: (float64) 90
-	    }
-	   },
-	   (string) (len=1) "l": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) e7c6ddee-729e-44a4-b977-7d3eafe47497,
-	     Value: (float64) 110
-	    }
-	   },
-	   (string) (len=1) "a": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 15d0a33b-d369-4b61-b162-320ece53cfa1,
-	     Value: (string) (len=2) "aa"
-	    }
-	   },
-	   (string) (len=2) "ff": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 4c2afab4-df69-490b-8cf0-c8311808c0fc,
-	     Value: (float64) 50
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 38e68ad4-b9f8-4256-9638-1e52cdbb989a,
-	     Value: (float64) 50
-	    }
-	   },
-	   (string) (len=1) "k": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9,
-	     Value: (float64) 100
-	    }
-	   },
-	   (string) (len=2) "bb": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) b96f76ed-028a-4e2f-942e-2adf37f5bcb0,
-	     Value: (float64) 10
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 7f010e2c-b764-4601-b190-4b34372203e7,
-	     Value: (float64) 10
-	    }
-	   },
-	   (string) (len=2) "ee": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 8d21dad3-5ed7-4925-bfae-12b345592a36,
-	     Value: (float64) 40
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 6277ad55-a3ed-41bc-8ad2-1cfe6e60938b,
-	     Value: (float64) 40
-	    }
-	   },
-	   (string) (len=2) "ll": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) ff4d7387-b3f7-41ec-9cee-912bb9220545,
-	     Value: (float64) 110
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 519d212c-4774-49a1-bc4e-3715af929c38,
-	     Value: (float64) 110
-	    }
-	   },
-	   (string) (len=2) "xx": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 9cf5c2a7-45eb-4e58-bf5a-9f15186c0819,
-	     Value: (float64) 140
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 122191a7-5437-45ae-9ec6-1a73fee5c996,
-	     Value: (float64) 140
-	    }
-	   },
-	   (string) (len=2) "dd": ([]gremgoser.GremlinProperty) (len=2 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 51336fa2-ebf9-4d7a-9ec5-0128a6341ea6,
-	     Value: (float64) 30
-	    },
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) 337fe24f-8ea3-40ea-b726-e7169883618b,
-	     Value: (float64) 30
-	    }
-	   },
-	   (string) (len=1) "f": ([]gremgoser.GremlinProperty) (len=1 cap=4) {
-	    (gremgoser.GremlinProperty) {
-	     Id: (uuid.UUID) (len=16 cap=16) ed8cf6a7-d585-4575-a08c-cf4aa27f1491,
-	     Value: (float64) 50
-	    }
-	   }
-	  }
-	 })
-	}*/
+	_tResp := []*GremlinData{
+		&GremlinData{
+			Id:         uuid.UUID{0xc1, 0xf7, 0xa9, 0x21, 0xb7, 0x67, 0x48, 0x39, 0xbb, 0xdc, 0x64, 0x78, 0xeb, 0x5f, 0x34, 0x54},
+			Label:      "test",
+			Type:       "vertex",
+			InVLablel:  "",
+			OutVLablel: "",
+			InV:        uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+			OutV:       uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+			Properties: map[string]interface{}{
+				"kk": []interface{}{map[string]interface{}{"value": float64(100), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": float64(100)}},
+				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": float64(20)}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": float64(20)}},
+				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": float64(90)}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": float64(90)}},
+				"i":  []interface{}{map[string]interface{}{"id": "2295b3de-fc5b-42c9-8b04-44b12fbe1346", "value": float64(80)}},
+				"aa": []interface{}{map[string]interface{}{"id": "225ed5a7-b000-4a59-b6c3-332682a5216a", "value": "aa"}, map[string]interface{}{"id": "9cbee039-c5b4-4e75-a1b0-346a47e5dc36", "value": "aa"}},
+				"c":  []interface{}{map[string]interface{}{"value": float64(20), "id": "8e58d327-e06b-44e4-a5d9-75558cdca2dc"}},
+				"ii": []interface{}{map[string]interface{}{"id": "fe3a148a-4a80-4ca2-851b-5dc473f549e6", "value": float64(80)}, map[string]interface{}{"id": "021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f", "value": float64(80)}},
+				"m":  []interface{}{map[string]interface{}{"value": float64(120), "id": "a4b507fe-bb16-4b4a-aa1d-cf922af67cd2"}},
+				"x":  []interface{}{map[string]interface{}{"id": "56b71ade-d0aa-416f-8da3-517391fd7ee4", "value": float64(130)}},
+				"b":  []interface{}{map[string]interface{}{"value": float64(10), "id": "91df576d-3501-4303-9d89-1c8409ce6ff4"}},
+				"dd": []interface{}{map[string]interface{}{"id": "51336fa2-ebf9-4d7a-9ec5-0128a6341ea6", "value": float64(30)}, map[string]interface{}{"id": "337fe24f-8ea3-40ea-b726-e7169883618b", "value": float64(30)}},
+				"h":  []interface{}{map[string]interface{}{"id": "3e16edbc-5a77-4b97-bdb4-4695996d8915", "value": float64(0.07)}},
+				"j":  []interface{}{map[string]interface{}{"id": "e7235d64-4212-448d-869f-612cf2403b96", "value": float64(90)}},
+				"xx": []interface{}{map[string]interface{}{"id": "9cf5c2a7-45eb-4e58-bf5a-9f15186c0819", "value": float64(140)}, map[string]interface{}{"id": "122191a7-5437-45ae-9ec6-1a73fee5c996", "value": float64(140)}},
+				"ee": []interface{}{map[string]interface{}{"value": float64(40), "id": "8d21dad3-5ed7-4925-bfae-12b345592a36"}, map[string]interface{}{"id": "6277ad55-a3ed-41bc-8ad2-1cfe6e60938b", "value": float64(40)}},
+				"f":  []interface{}{map[string]interface{}{"id": "ed8cf6a7-d585-4575-a08c-cf4aa27f1491", "value": float64(50)}},
+				"k":  []interface{}{map[string]interface{}{"id": "a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9", "value": float64(100)}},
+				"l":  []interface{}{map[string]interface{}{"id": "e7c6ddee-729e-44a4-b977-7d3eafe47497", "value": float64(110)}},
+				"nn": []interface{}{map[string]interface{}{"id": "7af1d164-3966-4dde-93fa-511a936601f5", "value": true}, map[string]interface{}{"id": "90be7e5c-8bf6-4bfd-bd01-38be1697d9f8", "value": true}},
+				"d":  []interface{}{map[string]interface{}{"id": "565d7400-e75b-4813-aa39-6c09cae781a8", "value": float64(30)}},
+				"g":  []interface{}{map[string]interface{}{"value": float64(0.06), "id": "2c6860ac-7151-48f9-b866-5b40a3488d1e"}},
+				"n":  []interface{}{map[string]interface{}{"id": "954cc7f9-d655-4123-a66d-e3e665cf7d49", "value": true}},
+				"bb": []interface{}{map[string]interface{}{"id": "b96f76ed-028a-4e2f-942e-2adf37f5bcb0", "value": float64(10)}, map[string]interface{}{"id": "7f010e2c-b764-4601-b190-4b34372203e7", "value": float64(10)}},
+				"hh": []interface{}{map[string]interface{}{"value": float64(0.07), "id": "b2266aff-1f18-4391-98f8-5ad6a542a2e1"}, map[string]interface{}{"id": "709a88dd-8fc4-4c8d-bd31-61962feff9b2", "value": float64(0.07)}},
+				"ff": []interface{}{map[string]interface{}{"id": "4c2afab4-df69-490b-8cf0-c8311808c0fc", "value": float64(50)}, map[string]interface{}{"id": "38e68ad4-b9f8-4256-9638-1e52cdbb989a", "value": float64(50)}},
+				"gg": []interface{}{map[string]interface{}{"value": float64(0.06), "id": "a0a129f4-bfa4-4d1a-bc77-df5b63049197"}, map[string]interface{}{"id": "3c8b51c4-8b40-4d5f-a79d-6a9d74929837", "value": float64(0.06)}},
+				"ll": []interface{}{map[string]interface{}{"id": "ff4d7387-b3f7-41ec-9cee-912bb9220545", "value": float64(110)}, map[string]interface{}{"id": "519d212c-4774-49a1-bc4e-3715af929c38", "value": float64(110)}},
+				"mm": []interface{}{map[string]interface{}{"id": "0487cc86-ee49-4649-8131-d43610235c40", "value": float64(120)}, map[string]interface{}{"id": "b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12", "value": float64(120)}},
+				"a":  []interface{}{map[string]interface{}{"value": "aa", "id": "15d0a33b-d369-4b61-b162-320ece53cfa1"}},
+				"e":  []interface{}{map[string]interface{}{"id": "bf35b756-0640-48c6-9601-aab77c6aa603", "value": float64(40)}}},
+		},
+	}
 
 	resp, err := g.AddV("test", _t)
-	spew.Dump(resp)
 	assert.Nil(err)
-	assert.Equal(nil, resp)
+	assert.Equal(_tResp, resp)
 }
 
 func TestUpdateV(t *testing.T) {
@@ -514,178 +303,48 @@ func TestUpdateV(t *testing.T) {
 		},
 	}
 
-	_tResp := []interface{}{
-		[]interface{}{
-			map[string]interface{}{
-				"id":    "c1f7a921-b767-4839-bbdc-6478eb5f3454",
-				"label": "test",
-				"properties": map[string]interface{}{
-					"gg": []interface{}{
-						map[string]interface{}{
-							"id":    "a0a129f4-bfa4-4d1a-bc77-df5b63049197",
-							"value": float64(0.06)},
-						map[string]interface{}{
-							"id":    "3c8b51c4-8b40-4d5f-a79d-6a9d74929837",
-							"value": float64(0.06)}},
-					"m": []interface{}{
-						map[string]interface{}{
-							"value": float64(120),
-							"id":    "a4b507fe-bb16-4b4a-aa1d-cf922af67cd2"}},
-					"x": []interface{}{
-						map[string]interface{}{
-							"value": float64(130),
-							"id":    "56b71ade-d0aa-416f-8da3-517391fd7ee4"}},
-					"xx": []interface{}{
-						map[string]interface{}{
-							"id":    "9cf5c2a7-45eb-4e58-bf5a-9f15186c0819",
-							"value": float64(140)},
-						map[string]interface{}{
-							"id":    "122191a7-5437-45ae-9ec6-1a73fee5c996",
-							"value": float64(140)}},
-					"bb": []interface{}{
-						map[string]interface{}{
-							"id":    "b96f76ed-028a-4e2f-942e-2adf37f5bcb0",
-							"value": float64(10)},
-						map[string]interface{}{
-							"id":    "7f010e2c-b764-4601-b190-4b34372203e7",
-							"value": float64(10)}},
-					"cc": []interface{}{
-						map[string]interface{}{
-							"id":    "8f16c7cd-4125-4d29-b714-5d8f561bb8e4",
-							"value": float64(20)},
-						map[string]interface{}{
-							"id":    "84f44c14-f038-47b3-a0b7-9f14dd11ddde",
-							"value": float64(20)}},
-					"ee": []interface{}{
-						map[string]interface{}{
-							"value": float64(40),
-							"id":    "8d21dad3-5ed7-4925-bfae-12b345592a36"},
-						map[string]interface{}{
-							"id":    "6277ad55-a3ed-41bc-8ad2-1cfe6e60938b",
-							"value": float64(40)}},
-					"n": []interface{}{
-						map[string]interface{}{
-							"id":    "954cc7f9-d655-4123-a66d-e3e665cf7d49",
-							"value": true}},
-					"aa": []interface{}{
-						map[string]interface{}{
-							"id":    "225ed5a7-b000-4a59-b6c3-332682a5216a",
-							"value": "aa"},
-						map[string]interface{}{
-							"id":    "9cbee039-c5b4-4e75-a1b0-346a47e5dc36",
-							"value": "aa"}},
-					"b": []interface{}{
-						map[string]interface{}{
-							"id":    "91df576d-3501-4303-9d89-1c8409ce6ff4",
-							"value": float64(10)}},
-					"d": []interface{}{
-						map[string]interface{}{
-							"id":    "565d7400-e75b-4813-aa39-6c09cae781a8",
-							"value": float64(30)}},
-					"e": []interface{}{
-						map[string]interface{}{
-							"id":    "bf35b756-0640-48c6-9601-aab77c6aa603",
-							"value": float64(40)}},
-					"ff": []interface{}{
-						map[string]interface{}{
-							"id":    "4c2afab4-df69-490b-8cf0-c8311808c0fc",
-							"value": float64(50)},
-						map[string]interface{}{
-							"id":    "38e68ad4-b9f8-4256-9638-1e52cdbb989a",
-							"value": float64(50)}},
-					"g": []interface{}{
-						map[string]interface{}{
-							"id":    "2c6860ac-7151-48f9-b866-5b40a3488d1e",
-							"value": float64(0.06)}},
-					"ii": []interface{}{
-						map[string]interface{}{
-							"id":    "fe3a148a-4a80-4ca2-851b-5dc473f549e6",
-							"value": float64(80)},
-						map[string]interface{}{
-							"id":    "021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f",
-							"value": float64(80)}},
-					"mm": []interface{}{
-						map[string]interface{}{
-							"id":    "0487cc86-ee49-4649-8131-d43610235c40",
-							"value": float64(120)},
-						map[string]interface{}{
-							"id":    "b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12",
-							"value": float64(120)}},
-					"nn": []interface{}{
-						map[string]interface{}{
-							"id":    "7af1d164-3966-4dde-93fa-511a936601f5",
-							"value": true},
-						map[string]interface{}{
-							"id":    "90be7e5c-8bf6-4bfd-bd01-38be1697d9f8",
-							"value": true}},
-					"a": []interface{}{
-						map[string]interface{}{
-							"value": "aa",
-							"id":    "15d0a33b-d369-4b61-b162-320ece53cfa1"}},
-					"dd": []interface{}{
-						map[string]interface{}{
-							"id":    "51336fa2-ebf9-4d7a-9ec5-0128a6341ea6",
-							"value": float64(30)},
-						map[string]interface{}{
-							"id":    "337fe24f-8ea3-40ea-b726-e7169883618b",
-							"value": float64(30)}},
-					"f": []interface{}{
-						map[string]interface{}{
-							"id":    "ed8cf6a7-d585-4575-a08c-cf4aa27f1491",
-							"value": float64(50)}},
-					"jj": []interface{}{
-						map[string]interface{}{
-							"id":    "84e17824-94be-47e9-b7bb-7e46ed5c065f",
-							"value": float64(90)},
-						map[string]interface{}{
-							"id":    "20dffbe0-4c63-4b15-9b5d-43111bd10525",
-							"value": float64(90)}},
-					"k": []interface{}{
-						map[string]interface{}{
-							"value": float64(100),
-							"id":    "a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9"}},
-					"ll": []interface{}{
-						map[string]interface{}{
-							"id":    "ff4d7387-b3f7-41ec-9cee-912bb9220545",
-							"value": float64(110)},
-						map[string]interface{}{
-							"id":    "519d212c-4774-49a1-bc4e-3715af929c38",
-							"value": float64(110)}},
-					"c": []interface{}{
-						map[string]interface{}{
-							"id":    "8e58d327-e06b-44e4-a5d9-75558cdca2dc",
-							"value": float64(20)}},
-					"j": []interface{}{
-						map[string]interface{}{
-							"id":    "e7235d64-4212-448d-869f-612cf2403b96",
-							"value": float64(90)}},
-					"l": []interface{}{
-						map[string]interface{}{
-							"id":    "e7c6ddee-729e-44a4-b977-7d3eafe47497",
-							"value": float64(110)}},
-					"h": []interface{}{
-						map[string]interface{}{
-							"id":    "3e16edbc-5a77-4b97-bdb4-4695996d8915",
-							"value": float64(0.07)}},
-					"hh": []interface{}{
-						map[string]interface{}{
-							"id":    "b2266aff-1f18-4391-98f8-5ad6a542a2e1",
-							"value": float64(0.07)},
-						map[string]interface{}{
-							"id":    "709a88dd-8fc4-4c8d-bd31-61962feff9b2",
-							"value": float64(0.07)}},
-					"i": []interface{}{
-						map[string]interface{}{
-							"id":    "2295b3de-fc5b-42c9-8b04-44b12fbe1346",
-							"value": float64(80)}},
-					"kk": []interface{}{
-						map[string]interface{}{
-							"id":    "740dca9e-c5d7-40d3-8d68-feb48090a638",
-							"value": float64(100)},
-						map[string]interface{}{
-							"id":    "a0587e7d-6bf5-4cba-b911-0507d0469068",
-							"value": float64(100)}}},
-				"type": "vertex"}}}
+	_tResp := []*GremlinData{
+		&GremlinData{
+			Id:         uuid.UUID{0xc1, 0xf7, 0xa9, 0x21, 0xb7, 0x67, 0x48, 0x39, 0xbb, 0xdc, 0x64, 0x78, 0xeb, 0x5f, 0x34, 0x54},
+			Label:      "test",
+			Type:       "vertex",
+			InVLablel:  "",
+			OutVLablel: "",
+			InV:        uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+			OutV:       uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+			Properties: map[string]interface{}{
+				"kk": []interface{}{map[string]interface{}{"value": float64(100), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": float64(100)}},
+				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": float64(20)}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": float64(20)}},
+				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": float64(90)}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": float64(90)}},
+				"i":  []interface{}{map[string]interface{}{"id": "2295b3de-fc5b-42c9-8b04-44b12fbe1346", "value": float64(80)}},
+				"aa": []interface{}{map[string]interface{}{"id": "225ed5a7-b000-4a59-b6c3-332682a5216a", "value": "aa"}, map[string]interface{}{"id": "9cbee039-c5b4-4e75-a1b0-346a47e5dc36", "value": "aa"}},
+				"c":  []interface{}{map[string]interface{}{"value": float64(20), "id": "8e58d327-e06b-44e4-a5d9-75558cdca2dc"}},
+				"ii": []interface{}{map[string]interface{}{"id": "fe3a148a-4a80-4ca2-851b-5dc473f549e6", "value": float64(80)}, map[string]interface{}{"id": "021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f", "value": float64(80)}},
+				"m":  []interface{}{map[string]interface{}{"value": float64(120), "id": "a4b507fe-bb16-4b4a-aa1d-cf922af67cd2"}},
+				"x":  []interface{}{map[string]interface{}{"id": "56b71ade-d0aa-416f-8da3-517391fd7ee4", "value": float64(130)}},
+				"b":  []interface{}{map[string]interface{}{"value": float64(10), "id": "91df576d-3501-4303-9d89-1c8409ce6ff4"}},
+				"dd": []interface{}{map[string]interface{}{"id": "51336fa2-ebf9-4d7a-9ec5-0128a6341ea6", "value": float64(30)}, map[string]interface{}{"id": "337fe24f-8ea3-40ea-b726-e7169883618b", "value": float64(30)}},
+				"h":  []interface{}{map[string]interface{}{"id": "3e16edbc-5a77-4b97-bdb4-4695996d8915", "value": float64(0.07)}},
+				"j":  []interface{}{map[string]interface{}{"id": "e7235d64-4212-448d-869f-612cf2403b96", "value": float64(90)}},
+				"xx": []interface{}{map[string]interface{}{"id": "9cf5c2a7-45eb-4e58-bf5a-9f15186c0819", "value": float64(140)}, map[string]interface{}{"id": "122191a7-5437-45ae-9ec6-1a73fee5c996", "value": float64(140)}},
+				"ee": []interface{}{map[string]interface{}{"value": float64(40), "id": "8d21dad3-5ed7-4925-bfae-12b345592a36"}, map[string]interface{}{"id": "6277ad55-a3ed-41bc-8ad2-1cfe6e60938b", "value": float64(40)}},
+				"f":  []interface{}{map[string]interface{}{"id": "ed8cf6a7-d585-4575-a08c-cf4aa27f1491", "value": float64(50)}},
+				"k":  []interface{}{map[string]interface{}{"id": "a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9", "value": float64(100)}},
+				"l":  []interface{}{map[string]interface{}{"id": "e7c6ddee-729e-44a4-b977-7d3eafe47497", "value": float64(110)}},
+				"nn": []interface{}{map[string]interface{}{"id": "7af1d164-3966-4dde-93fa-511a936601f5", "value": true}, map[string]interface{}{"id": "90be7e5c-8bf6-4bfd-bd01-38be1697d9f8", "value": true}},
+				"d":  []interface{}{map[string]interface{}{"id": "565d7400-e75b-4813-aa39-6c09cae781a8", "value": float64(30)}},
+				"g":  []interface{}{map[string]interface{}{"value": float64(0.06), "id": "2c6860ac-7151-48f9-b866-5b40a3488d1e"}},
+				"n":  []interface{}{map[string]interface{}{"id": "954cc7f9-d655-4123-a66d-e3e665cf7d49", "value": true}},
+				"bb": []interface{}{map[string]interface{}{"id": "b96f76ed-028a-4e2f-942e-2adf37f5bcb0", "value": float64(10)}, map[string]interface{}{"id": "7f010e2c-b764-4601-b190-4b34372203e7", "value": float64(10)}},
+				"hh": []interface{}{map[string]interface{}{"value": float64(0.07), "id": "b2266aff-1f18-4391-98f8-5ad6a542a2e1"}, map[string]interface{}{"id": "709a88dd-8fc4-4c8d-bd31-61962feff9b2", "value": float64(0.07)}},
+				"ff": []interface{}{map[string]interface{}{"id": "4c2afab4-df69-490b-8cf0-c8311808c0fc", "value": float64(50)}, map[string]interface{}{"id": "38e68ad4-b9f8-4256-9638-1e52cdbb989a", "value": float64(50)}},
+				"gg": []interface{}{map[string]interface{}{"value": float64(0.06), "id": "a0a129f4-bfa4-4d1a-bc77-df5b63049197"}, map[string]interface{}{"id": "3c8b51c4-8b40-4d5f-a79d-6a9d74929837", "value": float64(0.06)}},
+				"ll": []interface{}{map[string]interface{}{"id": "ff4d7387-b3f7-41ec-9cee-912bb9220545", "value": float64(110)}, map[string]interface{}{"id": "519d212c-4774-49a1-bc4e-3715af929c38", "value": float64(110)}},
+				"mm": []interface{}{map[string]interface{}{"id": "0487cc86-ee49-4649-8131-d43610235c40", "value": float64(120)}, map[string]interface{}{"id": "b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12", "value": float64(120)}},
+				"a":  []interface{}{map[string]interface{}{"value": "aa", "id": "15d0a33b-d369-4b61-b162-320ece53cfa1"}},
+				"e":  []interface{}{map[string]interface{}{"id": "bf35b756-0640-48c6-9601-aab77c6aa603", "value": float64(40)}}},
+		},
+	}
 
 	resp, err := g.UpdateV(_t)
 	assert.Nil(err)
@@ -764,7 +423,7 @@ func TestDropV(t *testing.T) {
 		},
 	}
 
-	_tResp := []interface{}([]interface{}{[]interface{}{}})
+	_tResp := []*GremlinData(nil)
 	resp, err := g.DropV(_t)
 	assert.Nil(err)
 	assert.Equal(_tResp, resp)
@@ -862,16 +521,18 @@ func TestAddE(t *testing.T) {
 		XX: []XXX{XXX(14), XXX(14)},
 	}
 
-	_resp := []interface{}([]interface{}{
-		[]interface{}{
-			map[string]interface{}{
-				"outVLabel": "test",
-				"type":      "edge",
-				"id":        "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
-				"inV":       "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
-				"inVLabel":  "test",
-				"label":     "relates",
-				"outV":      "e3ff8f7d-0b29-4f4e-854a-affa3544b12a"}}})
+	_resp := []*GremlinData{
+		&GremlinData{
+			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
+			Label:      "relates",
+			Type:       "edge",
+			InVLablel:  "test",
+			OutVLablel: "test",
+			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
+			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
+			Properties: map[string]interface{}(nil),
+		},
+	}
 
 	resp, err := g.AddE("relates", _t, _t2)
 	assert.Nil(err)
@@ -970,7 +631,7 @@ func TestDropE(t *testing.T) {
 		XX: []XXX{XXX(14), XXX(14)},
 	}
 
-	_resp := []interface{}{[]interface{}{}}
+	_resp := []*GremlinData(nil)
 
 	resp, err := g.DropE("relates", _t, _t2)
 	assert.Nil(err)
@@ -1002,16 +663,18 @@ func TestAddEById(t *testing.T) {
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
 
-	_resp := []interface{}([]interface{}{
-		[]interface{}{
-			map[string]interface{}{
-				"outVLabel": "test",
-				"type":      "edge",
-				"id":        "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
-				"inV":       "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
-				"inVLabel":  "test",
-				"label":     "relates",
-				"outV":      "e3ff8f7d-0b29-4f4e-854a-affa3544b12a"}}})
+	_resp := []*GremlinData{
+		&GremlinData{
+			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
+			Label:      "relates",
+			Type:       "edge",
+			InVLablel:  "test",
+			OutVLablel: "test",
+			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
+			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
+			Properties: map[string]interface{}(nil),
+		},
+	}
 
 	resp, err := g.AddEById("relates", _tUUID, _t2UUID)
 	assert.Nil(err)
@@ -1043,7 +706,7 @@ func TestDropEById(t *testing.T) {
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
 
-	_resp := []interface{}{[]interface{}{}}
+	_resp := []*GremlinData(nil)
 
 	resp, err := g.DropEById("relates", _tUUID, _t2UUID)
 	assert.Nil(err)
@@ -1174,7 +837,7 @@ func TestDisposed(t *testing.T) {
 	assert.Nil(err)
 	q := "g.V()"
 	_, err = g.Execute(q, nil, nil)
-	_err := errors.New("you cannot write on a disposed connection")
+	_err := ErrorConnectionDisposed
 	assert.Equal(_err, err)
 
 	// create test struct to pass as interface to AddV
@@ -1291,8 +954,7 @@ func TestGetPropVal(t *testing.T) {
 
 	p, err := getPropertyValue(props)
 	assert.Equal(nil, p)
-	_err := errors.New("passed property cannot be cast")
-	assert.Equal(_err, err)
+	assert.Equal(ErrorCannotCastProperty, err)
 }
 
 func TestBuildProps(t *testing.T) {
@@ -1428,18 +1090,18 @@ func TestAddEWithProps(t *testing.T) {
 		XX: []XXX{XXX(14), XXX(14)},
 	}
 
-	_resp := []interface{}([]interface{}{
-		[]interface{}{
-			map[string]interface{}{
-				"outVLabel":  "test",
-				"type":       "edge",
-				"id":         "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
-				"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
-				"inVLabel":   "test",
-				"label":      "relates",
-				"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
-				"properties": map[string]interface{}{"biz": float64(3), "foo": "bar"},
-			}}})
+	_resp := []*GremlinData{
+		&GremlinData{
+			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
+			Label:      "relates",
+			Type:       "edge",
+			InVLablel:  "test",
+			OutVLablel: "test",
+			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
+			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
+			Properties: map[string]interface{}{"foo": "bar", "biz": float64(3)},
+		},
+	}
 
 	var props map[string]interface{}
 	maps := []byte(`{"foo":"bar","biz":3}`)
@@ -1475,18 +1137,18 @@ func TestAddEWithPropsById(t *testing.T) {
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
 
-	_resp := []interface{}([]interface{}{
-		[]interface{}{
-			map[string]interface{}{
-				"outVLabel":  "test",
-				"type":       "edge",
-				"id":         "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
-				"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
-				"inVLabel":   "test",
-				"label":      "relates",
-				"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
-				"properties": map[string]interface{}{"biz": float64(3), "foo": "bar"},
-			}}})
+	_resp := []*GremlinData{
+		&GremlinData{
+			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
+			Label:      "relates",
+			Type:       "edge",
+			InVLablel:  "test",
+			OutVLablel: "test",
+			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
+			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
+			Properties: map[string]interface{}{"biz": float64(3), "foo": "bar"},
+		},
+	}
 
 	var props map[string]interface{}
 	maps := []byte(`{"baz":["foo","bar"]}`)

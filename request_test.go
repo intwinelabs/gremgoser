@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/intwinelabs/logger"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -64,7 +66,7 @@ func TestRequestPackaging(t *testing.T) {
 
 	var _msg []byte
 
-	mimetype := []byte("application/vnd.gremlin-v2.0+json")
+	mimetype := []byte("!application/vnd.gremlin-v2.0+json")
 	_msg = append(mimetype, j...)
 
 	assert.Equal(_msg, msg)
@@ -87,7 +89,10 @@ func TestRequestDispatch(t *testing.T) {
 			"language": "gremlin-groovy",
 		},
 	}
-	c, _ := NewClient(NewClientConfig("ws://127.0.0.1"))
+
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
+	assert.NotNil(c)
 	msg, err := packageRequest(req)
 	assert.Nil(err)
 	c.dispatchRequest(msg)
@@ -103,7 +108,9 @@ func TestAuthRequestDispatch(t *testing.T) {
 	assert.Nil(err)
 	req := prepareAuthRequest(id, "test", "root")
 
-	c, _ := NewClient(NewClientConfig("ws://127.0.0.1"))
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
+	assert.NotNil(c)
 	msg, err := packageRequest(req)
 	assert.Nil(err)
 	c.dispatchRequest(msg)
@@ -119,6 +126,6 @@ func TestAuthRequestPreparation(t *testing.T) {
 	assert.Nil(err)
 
 	req := prepareAuthRequest(id, "test", "root")
-	assert.False(req.RequestId != id || req.Processor != "trasversal" || req.Op != "authentication")
+	assert.False(req.RequestId != id || req.Processor != "traversal" || req.Op != "authentication")
 	assert.False(len(req.Args) != 1 || req.Args["sasl"] == "")
 }

@@ -3,7 +3,6 @@ package gremgoser
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -74,10 +73,10 @@ var addEWithPropsResp = `{"requestId":"9fdfe0ec-5329-4d3a-9566-e275b4734ff5","st
 
 var getResp = `{"requestId":"53d49b1d-74e1-473e-8130-762901557daf","status":{"code":200,"attributes":{"x-ms-status-code":200,"x-ms-request-charge":3.64,"x-ms-total-request-charge":3.64,"x-ms-cosmosdb-graph-request-charge":3.64,"StorageRU":3.64},"message":""},"result":{"data":[{"id":"64795211-c4a1-4eac-9e0a-b674ced77461","label":"test","type":"vertex","properties":{"a":[{"id":"15d0a33b-d369-4b61-b162-320ece53cfa1","value":"aa"}],"b":[{"id":"91df576d-3501-4303-9d89-1c8409ce6ff4","value":10}],"c":[{"id":"8e58d327-e06b-44e4-a5d9-75558cdca2dc","value":20}],"d":[{"id":"565d7400-e75b-4813-aa39-6c09cae781a8","value":30}],"e":[{"id":"bf35b756-0640-48c6-9601-aab77c6aa603","value":40}],"f":[{"id":"ed8cf6a7-d585-4575-a08c-cf4aa27f1491","value":50}],"g":[{"id":"2c6860ac-7151-48f9-b866-5b40a3488d1e","value":0.06}],"h":[{"id":"3e16edbc-5a77-4b97-bdb4-4695996d8915","value":0.07}],"i":[{"id":"2295b3de-fc5b-42c9-8b04-44b12fbe1346","value":80}],"j":[{"id":"e7235d64-4212-448d-869f-612cf2403b96","value":90}],"k":[{"id":"a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9","value":100}],"l":[{"id":"e7c6ddee-729e-44a4-b977-7d3eafe47497","value":110}],"m":[{"id":"a4b507fe-bb16-4b4a-aa1d-cf922af67cd2","value":120}],"n":[{"id":"954cc7f9-d655-4123-a66d-e3e665cf7d49","value":true}],"aa":[{"id":"225ed5a7-b000-4a59-b6c3-332682a5216a","value":"aa"},{"id":"9cbee039-c5b4-4e75-a1b0-346a47e5dc36","value":"aa"}],"bb":[{"id":"b96f76ed-028a-4e2f-942e-2adf37f5bcb0","value":10},{"id":"7f010e2c-b764-4601-b190-4b34372203e7","value":10}],"cc":[{"id":"8f16c7cd-4125-4d29-b714-5d8f561bb8e4","value":20},{"id":"84f44c14-f038-47b3-a0b7-9f14dd11ddde","value":20}],"dd":[{"id":"51336fa2-ebf9-4d7a-9ec5-0128a6341ea6","value":30},{"id":"337fe24f-8ea3-40ea-b726-e7169883618b","value":30}],"ee":[{"id":"8d21dad3-5ed7-4925-bfae-12b345592a36","value":40},{"id":"6277ad55-a3ed-41bc-8ad2-1cfe6e60938b","value":40}],"ff":[{"id":"4c2afab4-df69-490b-8cf0-c8311808c0fc","value":50},{"id":"38e68ad4-b9f8-4256-9638-1e52cdbb989a","value":50}],"gg":[{"id":"a0a129f4-bfa4-4d1a-bc77-df5b63049197","value":0.06},{"id":"3c8b51c4-8b40-4d5f-a79d-6a9d74929837","value":0.06}],"hh":[{"id":"b2266aff-1f18-4391-98f8-5ad6a542a2e1","value":0.07},{"id":"709a88dd-8fc4-4c8d-bd31-61962feff9b2","value":0.07}],"ii":[{"id":"fe3a148a-4a80-4ca2-851b-5dc473f549e6","value":80},{"id":"021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f","value":80}],"jj":[{"id":"84e17824-94be-47e9-b7bb-7e46ed5c065f","value":90},{"id":"20dffbe0-4c63-4b15-9b5d-43111bd10525","value":90}],"kk":[{"id":"740dca9e-c5d7-40d3-8d68-feb48090a638","value":100},{"id":"a0587e7d-6bf5-4cba-b911-0507d0469068","value":100}],"ll":[{"id":"ff4d7387-b3f7-41ec-9cee-912bb9220545","value":110},{"id":"519d212c-4774-49a1-bc4e-3715af929c38","value":110}],"mm":[{"id":"0487cc86-ee49-4649-8131-d43610235c40","value":120},{"id":"b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12","value":120}],"nn":[{"id":"7af1d164-3966-4dde-93fa-511a936601f5","value":true},{"id":"90be7e5c-8bf6-4bfd-bd01-38be1697d9f8","value":true}],"x":[{"id":"56b71ade-d0aa-416f-8da3-517391fd7ee4","value":130}],"xx":[{"id":"9cf5c2a7-45eb-4e58-bf5a-9f15186c0819","value":140},{"id":"122191a7-5437-45ae-9ec6-1a73fee5c996","value":140}],"z":[{"id":"f97cc2c0-dacf-4167-89cd-9df0bff9756b","value":"{\"Id\":\"96f7cacd-01fd-469e-a14c-5178903a39b6\",\"A\":\"aa\",\"B\":10}"}],"zz":[{"id":"33ac5504-4369-4b1a-af93-5544e1790670","value":"[{\"Id\":\"4f9a2f8b-3b3a-4028-a1e0-fa55e0dd1543\",\"A\":\"aa\",\"B\":10},{\"Id\":\"593db951-3456-450a-a779-44f1a4bd330d\",\"A\":\"aa\",\"B\":10}]"}]}}],"meta":{}}}`
 
-func hello(w http.ResponseWriter, r *http.Request) {
+func nows(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
-	io.WriteString(w, `hello`)
+	io.WriteString(w, `nows`)
 }
 
 func pong(w http.ResponseWriter, r *http.Request) {
@@ -301,9 +300,8 @@ func TestWsConnection(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	ws := Ws{uri: u}
-	err := ws.connect()
-	assert.Nil(err)
+	g, _ := NewClient(NewClientConfig(u))
+	ws := g.conn.(*Ws)
 
 	// test to see if connectend
 	connected := ws.isConnected()
@@ -312,16 +310,6 @@ func TestWsConnection(t *testing.T) {
 	// test to see if dispoased
 	disposed := ws.isDisposed()
 	assert.False(disposed)
-
-	// test write to ws
-	err = ws.write([]byte("TEST"))
-	assert.Nil(err)
-
-	// test read
-	resp, err := ws.read()
-	assert.Nil(err)
-	_resp := []byte("TEST")
-	assert.Equal(_resp, resp)
 
 	// test ping
 	ws.pingInterval = time.Duration(10) * time.Millisecond
@@ -332,14 +320,13 @@ func TestWsConnection(t *testing.T) {
 		close(ws.quit)
 		close(errs)
 	}()
-	err = <-errs
+	err := <-errs
 	assert.Nil(err)
 	time.Sleep(time.Duration(15) * time.Millisecond)
 
 	// test close
-	ws2 := Ws{uri: u}
-	err = ws2.connect()
-	assert.Nil(err)
+	g2, _ := NewClient(NewClientConfig(u))
+	ws2 := g2.conn.(*Ws)
 	err = ws2.close()
 	assert.Nil(err)
 }
@@ -348,17 +335,17 @@ func TestWsConnectionError(t *testing.T) {
 	assert := assert.New(t)
 
 	// Create test server with the hello handler.
-	s := httptest.NewServer(http.HandlerFunc(hello))
+	s := httptest.NewServer(http.HandlerFunc(nows))
 	defer s.Close()
 
 	// Convert http://127.0.0.1 to ws://127.0.0.
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the hello server
-	ws := Ws{uri: u}
-	err := ws.connect()
-	_err := errors.New("WS connection error: 200 OK: websocket: bad handshake")
-	assert.Equal(_err, err)
+	g, errs := NewClient(NewClientConfig(u))
+	err := <-errs
+	assert.Equal(ErrorWSConnectionNil, err)
+	assert.NotNil(g)
 }
 
 func TestWsConnectiongPongHandler(t *testing.T) {

@@ -16,7 +16,14 @@ func TestSetAuthentication(t *testing.T) {
 	u := "ws://127.0.0.1"
 	conf := NewClientConfig(u)
 	conf.SetAuthentication(user, pass)
-	assert.Equal(nil, conf.AuthReq)
+
+	_auth := &GremlinRequest{
+		RequestId: conf.AuthReq.RequestId,
+		Op:        "authentication",
+		Processor: "traversal",
+		Args:      map[string]interface{}{"sasl": "AGZvbwBiYXI="},
+	}
+	assert.Equal(_auth, conf.AuthReq)
 }
 
 func TestSetDebug(t *testing.T) {

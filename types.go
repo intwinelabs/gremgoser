@@ -11,20 +11,24 @@ import (
 )
 
 var (
-	ErrorWSConnection                = errors.New("error connecting to websocket")
-	ErrorNoGraphTags                 = errors.New("error no graph tags")
-	ErrorConnectionDisposed          = errors.New("you cannot write on a disposed connection")
-	ErrorInvalidURI                  = errors.New("invalid uri supplied in config")
-	ErrorNoAuth                      = errors.New("client does not have a secure dialer for authentication with the server")
-	Error401Unauthorized             = errors.New("UNAUTHORIZED")
-	Error407Authenticate             = errors.New("AUTHENTICATE")
-	Error498MalformedRequest         = errors.New("MALFORMED REQUEST")
-	Error499InvalidRequestArguments  = errors.New("INVALID REQUEST ARGUMENTS")
-	Error500ServerError              = errors.New("SERVER ERROR")
-	Error597ScriptEvaluationError    = errors.New("SCRIPT EVALUATION ERROR")
-	Error598ServerTimeout            = errors.New("SERVER TIMEOUT")
-	Error599ServerSerializationError = errors.New("SERVER SERIALIZATION ERROR")
-	ErrorUnknownCode                 = errors.New("UNKNOWN ERROR")
+	ErrorInterfaceHasNoIdField       = errors.New("gremgoser: the passed interface must have an Id field")
+	ErrorNoGraphTags                 = errors.New("gremgoser: the passed interface has no graph tags")
+	ErrorUnsupportedPropertyMap      = errors.New("gremgoser: unsupported property map")
+	ErrorCannotCastProperty          = errors.New("gremgoser: passed property cannot be cast")
+	ErrorWSConnection                = errors.New("gremgoser: error connecting to websocket")
+	ErrorWSConnectionNil             = errors.New("gremgoser: error websocket connection nil")
+	ErrorConnectionDisposed          = errors.New("gremgoser: you cannot write on a disposed connection")
+	ErrorInvalidURI                  = errors.New("gremgoser: invalid uri supplied in config")
+	ErrorNoAuth                      = errors.New("gremgoser: client does not have a secure dialer for authentication with the server")
+	Error401Unauthorized             = errors.New("gremgoser: UNAUTHORIZED")
+	Error407Authenticate             = errors.New("gremgoser: AUTHENTICATE")
+	Error498MalformedRequest         = errors.New("gremgoser: MALFORMED REQUEST")
+	Error499InvalidRequestArguments  = errors.New("gremgoser: INVALID REQUEST ARGUMENTS")
+	Error500ServerError              = errors.New("gremgoser: SERVER ERROR")
+	Error597ScriptEvaluationError    = errors.New("gremgoser: SCRIPT EVALUATION ERROR")
+	Error598ServerTimeout            = errors.New("gremgoser: SERVER TIMEOUT")
+	Error599ServerSerializationError = errors.New("gremgoser: SERVER SERIALIZATION ERROR")
+	ErrorUnknownCode                 = errors.New("gremgoser: UNKNOWN ERROR")
 )
 
 // ClientConfig configs a client
@@ -99,10 +103,14 @@ type GremlinResult struct {
 }
 
 type GremlinData struct {
-	Id         uuid.UUID                    `json:"id"`
-	Label      string                       `json:"label"`
-	Type       string                       `json:"type"`
-	Properties map[string][]GremlinProperty `json:"properties"`
+	Id         uuid.UUID              `json:"id"`
+	Label      string                 `json:"label"`
+	Type       string                 `json:"type"`
+	InVLablel  string                 `json:"inVLabel"`
+	OutVLablel string                 `json:"outVLabel"`
+	InV        uuid.UUID              `json"inV"`
+	OutV       uuid.UUID              `json"outV"`
+	Properties map[string]interface{} `json:"properties"`
 }
 
 type GremlinProperty struct {

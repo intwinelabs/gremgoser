@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/intwinelabs/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,26 +13,20 @@ Dummy responses for mocking
 */
 
 var id, _ = uuid.Parse("1d6d02bd-8e56-421d-9438-3bd6d0079ff1")
+var id2, _ = uuid.Parse("c1f7a921-b767-4839-bbdc-6478eb5f3454")
 
-var dummySuccessfulResponse = []byte(`{"result":{"data":[{"id": 2,"label": "person","type": "vertex","properties": [
-  {"id": 2, "value": "vadas", "label": "name"},
-  {"id": 3, "value": 27, "label": "age"}]}
-  ], "meta":{}},
- "requestId":"1d6d02bd-8e56-421d-9438-3bd6d0079ff1",
- "status":{"code":200,"attributes":{},"message":""}}`)
+var dummySuccessfulResponse = []byte(`{"requestId":"1d6d02bd-8e56-421d-9438-3bd6d0079ff1","status":{"code":200},"result":{"data":[{"id":"c1f7a921-b767-4839-bbdc-6478eb5f3454","label":"test"}]}}`)
 
-var dummyNeedAuthenticationResponse = []byte(`{"result":{},
- "requestId":"1d6d02bd-8e56-421d-9438-3bd6d0079ff1",
- "status":{"code":407,"attributes":{},"message":""}}`)
+var dummyNeedAuthenticationResponse = []byte(`{"requestId":"1d6d02bd-8e56-421d-9438-3bd6d0079ff1","status":{"code":407,"attributes":{"x-ms-status-code":407},"message":"Graph Service requires Gremlin Client to provide SASL Authentication."},"result":{"data":null,"meta":{}}}`)
 
-var dummyPartialResponse1 = []byte(`{"result":{"data":[{"id": 2,"label": "person","type": "vertex","properties": [
+var dummyPartialResponse1 = []byte(`{"result":{"data":[{"id": "b0a7e695-d43f-48f4-a690-97241be23605","label": "person","type": "vertex","properties": [
   {"id": 2, "value": "vadas", "label": "name"},
   {"id": 3, "value": 27, "label": "age"}]},
   ], "meta":{}},
  "requestId":"1d6d02bd-8e56-421d-9438-3bd6d0079ff1",
  "status":{"code":206,"attributes":{},"message":""}}`)
 
-var dummyPartialResponse2 = []byte(`{"result":{"data":[{"id": 4,"label": "person","type": "vertex","properties": [
+var dummyPartialResponse2 = []byte(`{"result":{"data":[{"id": "b0a7e695-d43f-48f4-a690-97241be23605","label": "person","type": "vertex","properties": [
   {"id": 5, "value": "quant", "label": "name"},
   {"id": 6, "value": 54, "label": "age"}]},
   ], "meta":{}},
@@ -41,7 +36,7 @@ var dummyPartialResponse2 = []byte(`{"result":{"data":[{"id": 4,"label": "person
 var dummySuccessfulResponseMarshalled = &GremlinResponse{
 	RequestId: id,
 	Status:    GremlinStatus{Code: 200},
-	Result:    GremlinResult{Data: []*GremlinData{&GremlinData{Label: "testData"}}},
+	Result:    GremlinResult{Data: []*GremlinData{&GremlinData{Id: id2, Label: "test"}}},
 }
 
 var dummyNeedAuthenticationResponseMarshalled = &GremlinResponse{
@@ -66,7 +61,9 @@ var dummyPartialResponse2Marshalled = &GremlinResponse{
 func TestResponseHandling(t *testing.T) {
 	assert := assert.New(t)
 
-	c, _ := NewClient(NewClientConfig("ws://127.0.0.1"))
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
+	assert.NotNil(c)
 
 	err := c.handleResponse(dummySuccessfulResponse)
 
@@ -79,13 +76,13 @@ func TestResponseHandling(t *testing.T) {
 func TestResponseAuthHandling(t *testing.T) {
 	assert := assert.New(t)
 
-	conf := NewClientConfig("ws://127.0.0.1")
-	conf.SetAuthentication("test", "pass")
-	c, _ := NewClient(conf)
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
+	c.conf.SetAuthentication("test", "pass")
 
 	c.handleResponse(dummyNeedAuthenticationResponse)
 
-	req := conf.AuthReq
+	req := c.conf.AuthReq
 
 	sampleAuthRequest, err := packageRequest(req)
 	assert.Nil(err)
@@ -94,13 +91,6 @@ func TestResponseAuthHandling(t *testing.T) {
 
 	assert.Equal(authRequest, sampleAuthRequest)
 
-	c.handleResponse(dummySuccessfulResponse) //If authentication is successful the server returns the origin petition
-
-	var expectedSuccessful []interface{}
-	expectedSuccessful = append(expectedSuccessful, dummySuccessfulResponseMarshalled.Result.Data)
-
-	_req := c.retrieveResponse(dummySuccessfulResponseMarshalled.RequestId)
-	assert.Equal(_req, req)
 }
 
 // TestResponseMarshalling tests the ability to marshal a response into a designated response struct for further manipulation
@@ -110,14 +100,14 @@ func TestResponseMarshalling(t *testing.T) {
 	resp, err := marshalResponse(dummySuccessfulResponse)
 	assert.Nil(err)
 	assert.False(dummySuccessfulResponseMarshalled.RequestId != resp.RequestId || dummySuccessfulResponseMarshalled.Status.Code != resp.Status.Code)
-
 }
 
 // TestResponseSortingSingleResponse tests the ability for sortResponse to save a response received from Gremlin Server
 func TestResponseSortingSingleResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	c, _ := NewClient(NewClientConfig("ws://127.0.0.1"))
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
 
 	c.saveResponse(dummySuccessfulResponseMarshalled)
 
@@ -130,7 +120,8 @@ func TestResponseSortingSingleResponse(t *testing.T) {
 func TestResponseSortingMultipleResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	c, _ := NewClient(NewClientConfig("ws://127.0.0.1"))
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
 
 	c.saveResponse(dummyPartialResponse1Marshalled)
 	c.saveResponse(dummyPartialResponse2Marshalled)
@@ -147,7 +138,9 @@ func TestResponseSortingMultipleResponse(t *testing.T) {
 // TestResponseRetrieval tests the ability for a requester to retrieve the response for a specified requestId generated when sending the request
 func TestResponseRetrieval(t *testing.T) {
 	assert := assert.New(t)
-	c, _ := NewClient(NewClientConfig("ws://127.0.0.1"))
+
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
 
 	c.saveResponse(dummyPartialResponse1Marshalled)
 	c.saveResponse(dummyPartialResponse2Marshalled)
@@ -164,7 +157,9 @@ func TestResponseRetrieval(t *testing.T) {
 // TestResponseDeletion tests the ability for a requester to clean up after retrieving a response after delivery to a client
 func TestResponseDeletion(t *testing.T) {
 	assert := assert.New(t)
-	c, _ := NewClient(NewClientConfig("ws://127.0.0.1"))
+
+	c := newClient(nil)
+	c.conf = &ClientConfig{Logger: logger.New()}
 
 	c.saveResponse(dummyPartialResponse1Marshalled)
 	c.saveResponse(dummyPartialResponse2Marshalled)
@@ -205,7 +200,7 @@ func TestResponseErrorDetection(t *testing.T) {
 		case co.code == 206:
 			assert.Nil(err)
 		default:
-			assert.Nil(err)
+			assert.NotNil(err)
 		}
 	}
 }

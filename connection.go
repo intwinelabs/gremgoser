@@ -39,7 +39,6 @@ func (ws *Ws) connect() error {
 
 	if err == nil {
 		ws.connected = true
-		ws.disposed = false
 		ws.conn.SetPongHandler(ws.pongHandler)
 	}
 	return nil
@@ -61,17 +60,26 @@ func (ws *Ws) isDisposed() bool {
 }
 
 func (ws *Ws) write(msg []byte) error {
+	if ws.conn == nil {
+		return ErrorWSConnectionNil
+	}
 	ws.conn.SetWriteDeadline(time.Now().Add(ws.writingWait))
 	return ws.conn.WriteMessage(2, msg)
 }
 
 func (ws *Ws) read() ([]byte, error) {
+	if ws.conn == nil {
+		return nil, ErrorWSConnectionNil
+	}
 	ws.conn.SetReadDeadline(time.Now().Add(ws.readingWait))
 	_, msg, err := ws.conn.ReadMessage()
 	return msg, err
 }
 
 func (ws *Ws) close() error {
+	if ws.conn == nil {
+		return ErrorWSConnectionNil
+	}
 	defer func() {
 		close(ws.quit)
 		ws.conn.Close()
@@ -83,18 +91,23 @@ func (ws *Ws) close() error {
 }
 
 func (ws *Ws) ping(errs chan error) {
+	var isConnected bool
 	ticker := time.NewTicker(ws.pingInterval)
 	defer ticker.Stop()
 	for {
+		if ws.conn == nil {
+			errs <- ErrorWSConnectionNil
+		}
 		select {
 		case <-ticker.C:
-			connected := true
-			if err := ws.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(ws.writingWait)); err != nil {
+			isConnected = true
+			err := ws.conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(ws.writingWait))
+			if err != nil {
 				errs <- err
-				connected = false
+				isConnected = false
 			}
 			ws.Lock()
-			ws.connected = connected
+			ws.connected = isConnected
 			ws.Unlock()
 		case <-ws.quit:
 			return
