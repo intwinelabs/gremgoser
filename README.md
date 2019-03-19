@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/intwinelabs/gremgoser.svg?branch=master)](https://travis-ci.org/intwinelabs/gremgoser)
 [![Coverage Status](https://coveralls.io/repos/github/intwinelabs/gremgoser/badge.svg?branch=master)](https://coveralls.io/github/intwinelabs/gremgoser?branch=master)
 
-gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and might change until v1.0 release. gremgoser also fixes all panics that could happen in gremgo.
+gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and might change until v1.0 release. gremgoser also fixes all panics that could happen in gremgo. The latest code also removed the storage of username and password in clear text in memory.
 
 
 Installation
@@ -72,12 +72,14 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/intwinelabs/gremgoser"
+	"github.com/intwinelabs/logger"
 )
+
+var log = logger.New()
 
 type X float32
 
@@ -99,21 +101,24 @@ type Person struct {
 
 func main() {
 	errs := make(chan error)
+	
+
+	uri := "wss://gremlin.server:443/"
+	user := "username"
+	pass := "password"
+
+	conf := gremgoser.NewClientConfig(uri)
+	conf.SetDebug()
+	conf.SetVerbose()
+	conf.SetLogger(log)
+	conf.SetAuthentication(user, pass)
+	g, errs := gremgoser.NewClient(conf)
+	
 	go func(chan error) {
 		err := <-errs
 		log.Fatal("Lost connection to the database: " + err.Error())
 	}(errs) // Example of connection error handling logic
 
-	host := "wss://gremlin.server:443/"
-	user := "username"
-	pass := "password"
-	conf := gremgoser.SetAuthentication(user, pass)
-	dialer := gremgoser.NewDialer(host, conf) // Returns a WebSocket dialer to connect to Gremlin Server
-	g, err := gremgoser.Dial(dialer, errs)    // Returns a gremgoser client to interact with the graph
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	res, err := g.Execute( // Sends a query to Gremlin Server with bindings
 		"g.V()",
 		map[string]string{},
