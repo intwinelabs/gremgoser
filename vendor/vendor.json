@@ -22,6 +22,12 @@
 			"revisionTime": "2018-12-06T07:02:39Z"
 		},
 		{
+			"checksumSHA1": "kqodya6jKTYRxbeC4iYtHIITX/w=",
+			"path": "github.com/intwinelabs/logger",
+			"revision": "75270f66be17d31e7fc631e52d7820729620ae3b",
+			"revisionTime": "2019-02-13T01:17:27Z"
+		},
+		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
 			"path": "github.com/pmezard/go-difflib/difflib",
