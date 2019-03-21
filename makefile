@@ -6,14 +6,7 @@ USER := $(shell whoami)
 IP := $(shell hostname -I | sed 's/ //')
 .PHONY: all 
 
-all: dep test ## Make all
-
-dep: ## Get the dependencies
-ifeq ($(GO_VENDOR),)
-	@echo "No govendor in your path, trying to install govendor with go get -u github.com/kardianos/govendor"
-	@go get -u github.com/kardianos/govendor
-endif
-	@govendor sync
+all: test ## Make all
 
 compiletest: ## Compiles test
 	@go test -v  ./... -run XXxxxXXXxxx  # ensures tests compile before running
