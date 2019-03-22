@@ -349,7 +349,7 @@ func (c *Client) Close() {
 
 // AddV takes a label and a interface and adds it a vertex to the graph
 func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
-	fmt.Print("\n\n\n\n\n\n%s\n\n\n\n\n\\n", spew.Sdump(data))
+	c.verbose("passed interface: %s", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -406,7 +406,7 @@ func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
 
 // UpdateV takes a interface and updates the vertex in the graph
 func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
-	fmt.Print("\n\n\n\n\n\n%s\n\n\n\n\n\\n", spew.Sdump(data))
+	c.verbose("passed interface: %s", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -463,6 +463,7 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
 
 // DropV takes a interface and drops the vertex from the graph
 func (c *Client) DropV(data interface{}) ([]*GremlinData, error) {
+	c.verbose("passed interface: %s", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
