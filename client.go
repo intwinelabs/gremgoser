@@ -442,11 +442,15 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
 			}
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, jsonBytes)
 		} else if opts.Contains("[]string") {
+			// drop the properties
+			q = fmt.Sprintf("%s.sideEffect(properties('%s').drop())", q, name)
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
 				q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", s.Index(i).Interface())))
 			}
 		} else if opts.Contains("[]bool") || opts.Contains("[]number") {
+			// drop the properties
+			q = fmt.Sprintf("%s.sideEffect(properties('%s').drop())", q, name)
 			s := reflect.ValueOf(val)
 			for i := 0; i < s.Len(); i++ {
 				q = fmt.Sprintf("%s.property('%s', %v)", q, name, s.Index(i).Interface())
