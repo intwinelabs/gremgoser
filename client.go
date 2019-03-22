@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/intwinelabs/logger"
 
 	"github.com/google/uuid"
@@ -267,7 +268,7 @@ func (c *Client) Get(query string, ptr interface{}) error {
 									json.Unmarshal([]byte(_v), s)
 									f.Set(reflect.ValueOf(s).Elem())
 								}
-							} else if f.Kind() == reflect.Slice { // take JSON string and unmarshal into struct
+							} else if f.Kind() == reflect.Slice { // take JSON string and unmarshal into slice
 								_v, ok := v.(string)
 								if ok {
 									sSlice := reflect.SliceOf(f.Type().Elem())
@@ -348,6 +349,7 @@ func (c *Client) Close() {
 
 // AddV takes a label and a interface and adds it a vertex to the graph
 func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
+	fmt.Print("\n\n\n\n\n\n%s\n\n\n\n\n\\n", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -404,6 +406,7 @@ func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
 
 // UpdateV takes a interface and updates the vertex in the graph
 func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
+	fmt.Print("\n\n\n\n\n\n%s\n\n\n\n\n\\n", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
