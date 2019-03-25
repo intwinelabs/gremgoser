@@ -6,7 +6,10 @@ USER := $(shell whoami)
 IP := $(shell hostname -I | sed 's/ //')
 .PHONY: all 
 
-all: test ## Make all
+all: deps test ## Make all
+
+deps : ## Go modules download
+	@go mod download
 
 compiletest: ## Compiles test
 	@go test -v  ./... -run XXxxxXXXxxx  # ensures tests compile before running
