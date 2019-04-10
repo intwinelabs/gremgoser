@@ -63,12 +63,14 @@ type Ws struct {
 	conn         *websocket.Conn
 	disposed     bool
 	connected    bool
+	debug        bool
 	pingInterval time.Duration
 	writingWait  time.Duration
 	readingWait  time.Duration
 	timeout      time.Duration
 	quit         chan struct{}
 	sync.RWMutex
+	logger *logger.Logger
 }
 
 // GremlinRequest is a container for all evaluation request parameters to be sent to the Gremlin Server.

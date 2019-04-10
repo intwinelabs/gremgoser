@@ -39,9 +39,11 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	c.errs = errs
 
 	ws := &Ws{
+		debug:     conf.Debug,
 		uri:       conf.URI,
 		connected: false,
 		quit:      make(chan struct{}),
+		logger:    conf.Logger,
 	}
 
 	// check for configs

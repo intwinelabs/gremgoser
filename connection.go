@@ -1,6 +1,7 @@
 package gremgoser
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -49,6 +50,7 @@ func (ws *Ws) pongHandler(appData string) error {
 	ws.Lock()
 	ws.connected = true
 	ws.Unlock()
+	ws.debugf("received pong message from server")
 	return nil
 }
 
@@ -107,6 +109,7 @@ func (ws *Ws) ping(errs chan error) {
 				errs <- err
 				isConnected = false
 			}
+			ws.debugf("sending ping message to server")
 			ws.Lock()
 			ws.connected = isConnected
 			ws.Unlock()
@@ -155,5 +158,12 @@ func (c *Client) readWorker(errs chan error, quit chan struct{}) {
 		default:
 			continue
 		}
+	}
+}
+
+// debug prints to the configured logger if debug is enabled
+func (ws *Ws) debugf(frmt string, i ...interface{}) {
+	if ws.debug {
+		ws.logger.InfoDepth(1, fmt.Sprintf("gremgoser: ws: DEBUG: "+frmt, i...))
 	}
 }
