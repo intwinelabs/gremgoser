@@ -22,12 +22,12 @@ func (ws *Ws) connect() error {
 	var resp *http.Response
 	var err error
 	d := websocket.Dialer{
-		WriteBufferSize:   4092,
-		ReadBufferSize:    4092,
-		HandshakeTimeout:  5 * time.Second, // Timeout or else we'll hang forever and never fail on bad hosts.
-		EnableCompression: true,
+		WriteBufferSize:  8192,
+		ReadBufferSize:   8192,
+		HandshakeTimeout: 60 * time.Second, // Timeout or else we'll hang forever and never fail on bad hosts.
 	}
 	ws.conn, resp, err = d.Dial(ws.uri, http.Header{})
+	ws.verbosef("dial response: %+v", resp)
 	if err != nil {
 		// As of 3.2.2 the URL has changed.
 		// https://groups.google.com/forum/#!msg/gremlin-users/x4hiHsmTsHM/Xe4GcPtRCAAJ
@@ -42,26 +42,17 @@ func (ws *Ws) connect() error {
 	if err == nil {
 		ws.connected = true
 		ws.conn.SetPongHandler(ws.pongHandler)
-		if ws.debug {
-			go func() {
-				con := ws.conn.UnderlyingConn()
-				for {
-					info, err := GetsockoptTCPInfo(&con)
-					ws.debugf("tcpinfo: %+v, err: %+v", info, err)
-					time.Sleep(1 * time.Second)
-				}
-			}()
-		}
 	}
 
 	return nil
 }
 
 func (ws *Ws) pongHandler(appData string) error {
+	ws.conn.SetReadDeadline(time.Now().Add(ws.pingInterval + 10))
 	ws.Lock()
 	ws.connected = true
 	ws.Unlock()
-	ws.debugf("received pong message from server")
+	ws.verbosef("received pong message from server")
 	return nil
 }
 
@@ -77,16 +68,27 @@ func (ws *Ws) write(msg []byte) error {
 	if ws.conn == nil {
 		return ErrorWSConnectionNil
 	}
-	ws.conn.SetWriteDeadline(time.Now().Add(ws.writingWait))
-	return ws.conn.WriteMessage(2, msg)
+	wwt := time.Now().Add(ws.writingWait)
+	ws.verbosef("waiting to write until: %s, msg: %s", wwt.Format("Mon Jan 2 15:04:05 -0700 MST 2006"), msg)
+	ws.conn.SetWriteDeadline(wwt)
+	err := ws.conn.WriteMessage(2, msg)
+	if err == nil {
+		ws.verbosef("msg write: %s, msg: %s", time.Now().Format("Mon Jan 2 15:04:05 -0700 MST 2006"), msg)
+	}
+	return err
 }
 
 func (ws *Ws) read() ([]byte, error) {
 	if ws.conn == nil {
 		return nil, ErrorWSConnectionNil
 	}
-	ws.conn.SetReadDeadline(time.Now().Add(ws.readingWait))
+	rwt := time.Now().Add(ws.readingWait)
+	ws.verbosef("waiting to read until: %s", rwt.Format("Mon Jan 2 15:04:05 -0700 MST 2006"))
+	ws.conn.SetReadDeadline(rwt)
 	_, msg, err := ws.conn.ReadMessage()
+	if err == nil {
+		ws.verbosef("msg read: %s, msg: %s", time.Now().Format("Mon Jan 2 15:04:05 -0700 MST 2006"), msg)
+	}
 	return msg, err
 }
 
@@ -120,7 +122,7 @@ func (ws *Ws) ping(errs chan error) {
 				errs <- err
 				isConnected = false
 			}
-			ws.debugf("sending ping message to server")
+			ws.verbosef("sending ping message to server")
 			ws.Lock()
 			ws.connected = isConnected
 			ws.Unlock()
@@ -161,7 +163,7 @@ func (c *Client) readWorker(errs chan error, quit chan struct{}) {
 			if err != nil {
 				errs <- err
 			}
-			c.verbose("Message handled...")
+			c.verbose("message handled: %s", msg)
 		}
 		select {
 		case <-quit:
@@ -172,9 +174,16 @@ func (c *Client) readWorker(errs chan error, quit chan struct{}) {
 	}
 }
 
-// debug prints to the configured logger if debug is enabled
+// debugf prints to the configured logger if debug is enabled
 func (ws *Ws) debugf(frmt string, i ...interface{}) {
 	if ws.debug {
-		ws.logger.InfoDepth(1, fmt.Sprintf("gremgoser: ws: DEBUG: "+frmt, i...))
+		ws.logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: WS: DEBUG: "+frmt, i...))
+	}
+}
+
+// verbosef prints to the configured logger if debug is enabled
+func (ws *Ws) verbosef(frmt string, i ...interface{}) {
+	if ws.debug {
+		ws.logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: WS: VERBOSE: "+frmt, i...))
 	}
 }

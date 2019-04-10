@@ -40,6 +40,7 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 
 	ws := &Ws{
 		debug:     conf.Debug,
+		verbose:   conf.Verbose,
 		uri:       conf.URI,
 		connected: false,
 		quit:      make(chan struct{}),
@@ -53,7 +54,7 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	if conf.Timeout != 0 {
 		ws.timeout = conf.Timeout
 	} else {
-		ws.timeout = 5 * time.Second
+		ws.timeout = 300 * time.Second
 	}
 	if conf.PingInterval != 0 {
 		ws.pingInterval = conf.PingInterval
@@ -63,12 +64,12 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	if conf.WritingWait != 0 {
 		ws.writingWait = conf.WritingWait
 	} else {
-		ws.writingWait = 10 * time.Second
+		ws.writingWait = 120 * time.Second
 	}
 	if conf.ReadingWait != 0 {
 		ws.readingWait = conf.ReadingWait
 	} else {
-		ws.readingWait = 10 * time.Second
+		ws.readingWait = 120 * time.Second
 	}
 	c.conn = ws
 	c.conf = conf
@@ -118,14 +119,14 @@ func (c *Client) IsConnected() bool {
 // debug prints to the configured logger if debug is enabled
 func (c *Client) debug(frmt string, i ...interface{}) {
 	if c.conf.Debug {
-		c.conf.Logger.InfoDepth(1, fmt.Sprintf("gremgoser: DEBUG: "+frmt, i...))
+		c.conf.Logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: DEBUG: "+frmt, i...))
 	}
 }
 
 // verbose prints to the configured logger if debug is enabled
 func (c *Client) verbose(frmt string, i ...interface{}) {
 	if c.conf.Verbose {
-		c.conf.Logger.InfoDepth(1, fmt.Sprintf("gremgoser: VERBOSE: "+frmt, i...))
+		c.conf.Logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: VERBOSE: "+frmt, i...))
 	}
 }
 

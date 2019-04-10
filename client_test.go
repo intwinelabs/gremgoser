@@ -78,7 +78,7 @@ func TestNewClient(t *testing.T) {
 	assert.IsType(&Client{}, g)
 	assert.IsType(make(chan error), errs)
 	assert.Equal(u, g.conf.URI)
-	assert.Equal(time.Duration(5000000000), g.conf.Timeout)
+	assert.Equal(time.Duration(300000000000), g.conf.Timeout)
 }
 
 func TestExecute(t *testing.T) {

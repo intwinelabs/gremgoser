@@ -64,6 +64,7 @@ type Ws struct {
 	disposed     bool
 	connected    bool
 	debug        bool
+	verbose      bool
 	pingInterval time.Duration
 	writingWait  time.Duration
 	readingWait  time.Duration
