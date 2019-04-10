@@ -42,7 +42,18 @@ func (ws *Ws) connect() error {
 	if err == nil {
 		ws.connected = true
 		ws.conn.SetPongHandler(ws.pongHandler)
+		if ws.debug {
+			go func() {
+				con := ws.conn.UnderlyingConn()
+				for {
+					info, err := GetsockoptTCPInfo(&con)
+					ws.debugf("tcpinfo: %+v, err: %+v", info, err)
+					time.Sleep(1 * time.Second)
+				}
+			}()
+		}
 	}
+
 	return nil
 }
 
