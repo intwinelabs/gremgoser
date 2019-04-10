@@ -21,9 +21,10 @@ func (ws *Ws) connect() error {
 	var resp *http.Response
 	var err error
 	d := websocket.Dialer{
-		WriteBufferSize:  8192,
-		ReadBufferSize:   8192,
-		HandshakeTimeout: 5 * time.Second, // Timeout or else we'll hang forever and never fail on bad hosts.
+		WriteBufferSize:   4092,
+		ReadBufferSize:    4092,
+		HandshakeTimeout:  5 * time.Second, // Timeout or else we'll hang forever and never fail on bad hosts.
+		EnableCompression: true,
 	}
 	ws.conn, resp, err = d.Dial(ws.uri, http.Header{})
 	if err != nil {
