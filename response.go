@@ -2,6 +2,7 @@ package gremgoser
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -63,14 +64,25 @@ func (c *Client) saveResponse(resp *GremlinResponse) {
 func (c *Client) retrieveResponse(id uuid.UUID) []*GremlinData {
 	data := []*GremlinData{}
 	resp, _ := c.responseNotifier.Load(id)
-	n := <-resp.(chan int)
-	if n == 1 {
-		if dataI, ok := c.results.Load(id); ok {
-			data = dataI.([]*GremlinData)
-			close(resp.(chan int))
-			c.responseNotifier.Delete(id)
-			c.deleteResponse(id)
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(c.conf.ReadingWait)
+		timeout <- true
+	}()
+	select {
+	case n := <-resp.(chan int):
+		if n == 1 {
+			if dataI, ok := c.results.Load(id); ok {
+				data = dataI.([]*GremlinData)
+				close(resp.(chan int))
+				c.responseNotifier.Delete(id)
+				c.deleteResponse(id)
+			}
 		}
+	case <-timeout:
+		// the read from resp ch has timed out
+		c.debug("timeout on response")
+		return nil
 	}
 	return data
 }
