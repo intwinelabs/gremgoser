@@ -108,7 +108,7 @@ func TestExecute(t *testing.T) {
 	resp, err := g.Execute(q, nil, nil)
 	assert.Nil(err)
 	assert.Nil(resp)
-	assert.Equal([]*GremlinData(nil), resp)
+	assert.Equal([]*GremlinRespData(nil), resp)
 }
 
 func TestAddV(t *testing.T) {
@@ -183,16 +183,12 @@ func TestAddV(t *testing.T) {
 		},
 	}
 
-	_tResp := []*GremlinData{
-		&GremlinData{
-			Id:         uuid.UUID{0xc1, 0xf7, 0xa9, 0x21, 0xb7, 0x67, 0x48, 0x39, 0xbb, 0xdc, 0x64, 0x78, 0xeb, 0x5f, 0x34, 0x54},
-			Label:      "test",
-			Type:       "vertex",
-			InVLablel:  "",
-			OutVLablel: "",
-			InV:        uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
-			OutV:       uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
-			Properties: map[string]interface{}{
+	_tResp := []*GremlinRespData{
+		&GremlinRespData{
+			"id":    "c1f7a921-b767-4839-bbdc-6478eb5f3454",
+			"label": "test",
+			"type":  "vertex",
+			"properties": map[string]interface{}{
 				"kk": []interface{}{map[string]interface{}{"value": float64(100), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": float64(100)}},
 				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": float64(20)}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": float64(20)}},
 				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": float64(90)}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": float64(90)}},
@@ -302,17 +298,12 @@ func TestUpdateV(t *testing.T) {
 			},
 		},
 	}
-
-	_tResp := []*GremlinData{
-		&GremlinData{
-			Id:         uuid.UUID{0xc1, 0xf7, 0xa9, 0x21, 0xb7, 0x67, 0x48, 0x39, 0xbb, 0xdc, 0x64, 0x78, 0xeb, 0x5f, 0x34, 0x54},
-			Label:      "test",
-			Type:       "vertex",
-			InVLablel:  "",
-			OutVLablel: "",
-			InV:        uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
-			OutV:       uuid.UUID{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
-			Properties: map[string]interface{}{
+	_tResp := []*GremlinRespData{
+		&GremlinRespData{
+			"id":    "c1f7a921-b767-4839-bbdc-6478eb5f3454",
+			"label": "test",
+			"type":  "vertex",
+			"properties": map[string]interface{}{
 				"kk": []interface{}{map[string]interface{}{"value": float64(100), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": float64(100)}},
 				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": float64(20)}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": float64(20)}},
 				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": float64(90)}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": float64(90)}},
@@ -423,7 +414,7 @@ func TestDropV(t *testing.T) {
 		},
 	}
 
-	_tResp := []*GremlinData(nil)
+	_tResp := []*GremlinRespData(nil)
 	resp, err := g.DropV(_t)
 	assert.Nil(err)
 	assert.Equal(_tResp, resp)
@@ -521,16 +512,15 @@ func TestAddE(t *testing.T) {
 		XX: []XXX{XXX(14), XXX(14)},
 	}
 
-	_resp := []*GremlinData{
-		&GremlinData{
-			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
-			Label:      "relates",
-			Type:       "edge",
-			InVLablel:  "test",
-			OutVLablel: "test",
-			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
-			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
-			Properties: map[string]interface{}(nil),
+	_resp := []*GremlinRespData{
+		&GremlinRespData{
+			"id":        "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
+			"label":     "relates",
+			"type":      "edge",
+			"inVLabel":  "test",
+			"outVLabel": "test",
+			"inV":       "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
+			"outV":      "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
 		},
 	}
 
@@ -631,7 +621,7 @@ func TestDropE(t *testing.T) {
 		XX: []XXX{XXX(14), XXX(14)},
 	}
 
-	_resp := []*GremlinData(nil)
+	_resp := []*GremlinRespData(nil)
 
 	resp, err := g.DropE("relates", _t, _t2)
 	assert.Nil(err)
@@ -663,16 +653,15 @@ func TestAddEById(t *testing.T) {
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
 
-	_resp := []*GremlinData{
-		&GremlinData{
-			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
-			Label:      "relates",
-			Type:       "edge",
-			InVLablel:  "test",
-			OutVLablel: "test",
-			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
-			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
-			Properties: map[string]interface{}(nil),
+	_resp := []*GremlinRespData{
+		&GremlinRespData{
+			"id":        "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
+			"label":     "relates",
+			"type":      "edge",
+			"inVLabel":  "test",
+			"outVLabel": "test",
+			"inV":       "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
+			"outV":      "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
 		},
 	}
 
@@ -706,7 +695,7 @@ func TestDropEById(t *testing.T) {
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
 
-	_resp := []*GremlinData(nil)
+	_resp := []*GremlinRespData(nil)
 
 	resp, err := g.DropEById("relates", _tUUID, _t2UUID)
 	assert.Nil(err)
@@ -790,20 +779,20 @@ func TestGet(t *testing.T) {
 
 	_ts := []Test{}
 	q := fmt.Sprintf("g.V('%s')", _t.Id)
-	err := g.Get(q, &_ts)
+	err := g.Get(q, nil, &_ts)
 	assert.Nil(err)
 	assert.Equal(1, len(_ts))
 	assert.Equal(_t, _ts[0])
 
 	// test error not a slice
 	_ts2 := Test{}
-	err = g.Get(q, &_ts2)
+	err = g.Get(q, nil, &_ts2)
 	_err := errors.New("the passed interface is not a slice")
 	assert.Equal(_err, err)
 
 	// test error not a ptr
 	_ts3 := []Test{}
-	err = g.Get(q, _ts3)
+	err = g.Get(q, nil, _ts3)
 	_err = errors.New("the passed interface is not a ptr")
 	assert.Equal(_err, err)
 }
@@ -913,7 +902,7 @@ func TestDisposed(t *testing.T) {
 
 	_ts := []Test{}
 	q = fmt.Sprintf("g.V('%s')", &_t.Id)
-	err = g.Get(q, _ts)
+	err = g.Get(q, nil, _ts)
 	assert.Equal(_err, err)
 
 	_, err = g.AddV("test", _t)
@@ -1090,16 +1079,16 @@ func TestAddEWithProps(t *testing.T) {
 		XX: []XXX{XXX(14), XXX(14)},
 	}
 
-	_resp := []*GremlinData{
-		&GremlinData{
-			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
-			Label:      "relates",
-			Type:       "edge",
-			InVLablel:  "test",
-			OutVLablel: "test",
-			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
-			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
-			Properties: map[string]interface{}{"foo": "bar", "biz": float64(3)},
+	_resp := []*GremlinRespData{
+		&GremlinRespData{
+			"id":         "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
+			"label":      "relates",
+			"type":       "edge",
+			"inVLabel":   "test",
+			"outVLabel":  "test",
+			"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
+			"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
+			"properties": map[string]interface{}{"foo": "bar", "biz": float64(3)},
 		},
 	}
 
@@ -1137,16 +1126,16 @@ func TestAddEWithPropsById(t *testing.T) {
 	_tUUID, _ := uuid.Parse("64795211-c4a1-4eac-9e0a-b674ced77461")
 	_t2UUID, _ := uuid.Parse("dafeafc6-63a7-42b2-8ac2-4b85c3e2e37a")
 
-	_resp := []*GremlinData{
-		&GremlinData{
-			Id:         uuid.UUID{0xe6, 0x23, 0xef, 0x5c, 0x1, 0xf9, 0x44, 0xf1, 0x96, 0x84, 0xf3, 0x3c, 0x2e, 0x65, 0x98, 0xee},
-			Label:      "relates",
-			Type:       "edge",
-			InVLablel:  "test",
-			OutVLablel: "test",
-			InV:        uuid.UUID{0xd0, 0x14, 0xab, 0x68, 0xfa, 0x70, 0x4a, 0x6c, 0x8f, 0x11, 0x33, 0xfd, 0x3e, 0xef, 0x1, 0x12},
-			OutV:       uuid.UUID{0xe3, 0xff, 0x8f, 0x7d, 0xb, 0x29, 0x4f, 0x4e, 0x85, 0x4a, 0xaf, 0xfa, 0x35, 0x44, 0xb1, 0x2a},
-			Properties: map[string]interface{}{"biz": float64(3), "foo": "bar"},
+	_resp := []*GremlinRespData{
+		&GremlinRespData{
+			"id":         "e623ef5c-01f9-44f1-9684-f33c2e6598ee",
+			"label":      "relates",
+			"type":       "edge",
+			"inVLabel":   "test",
+			"outVLabel":  "test",
+			"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
+			"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
+			"properties": map[string]interface{}{"biz": float64(3), "foo": "bar"},
 		},
 	}
 

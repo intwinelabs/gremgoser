@@ -42,10 +42,10 @@ func marshalResponse(msg []byte) (*GremlinResponse, error) {
 // saveResponse makes the response available for retrieval by the requester. Mutexes are used for thread safety.
 func (c *Client) saveResponse(resp *GremlinResponse) {
 	c.respMutex.Lock()
-	var container []*GremlinData
+	var container []*GremlinRespData
 	existingData, ok := c.results.Load(resp.RequestId) // Retrieve old data container (for requests with multiple responses)
 	if ok {
-		container = existingData.([]*GremlinData)
+		container = existingData.([]*GremlinRespData)
 	}
 	c.verbose("RequestId: %s, existing data: %+v", resp.RequestId, container)
 	for _, val := range resp.Result.Data {
@@ -61,8 +61,8 @@ func (c *Client) saveResponse(resp *GremlinResponse) {
 }
 
 // retrieveResponse retrieves the response saved by saveResponse.
-func (c *Client) retrieveResponse(id uuid.UUID) []*GremlinData {
-	data := []*GremlinData{}
+func (c *Client) retrieveResponse(id uuid.UUID) []*GremlinRespData {
+	data := []*GremlinRespData{}
 	resp, _ := c.responseNotifier.Load(id)
 	timeout := make(chan bool, 1)
 	go func() {
@@ -73,7 +73,10 @@ func (c *Client) retrieveResponse(id uuid.UUID) []*GremlinData {
 	case n := <-resp.(chan int):
 		if n == 1 {
 			if dataI, ok := c.results.Load(id); ok {
-				data = dataI.([]*GremlinData)
+				data, ok = dataI.([]*GremlinRespData)
+				if !ok {
+					return nil
+				}
 				close(resp.(chan int))
 				c.responseNotifier.Delete(id)
 				c.deleteResponse(id)

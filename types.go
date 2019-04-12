@@ -101,16 +101,18 @@ type GremlinStatusAttributes struct {
 }
 
 type GremlinResult struct {
-	Data []*GremlinData `json:"data"`
-	Meta interface{}    `json:"meta"`
+	Data []*GremlinRespData `json:"data"`
+	Meta interface{}        `json:"meta"`
 }
+
+type GremlinRespData map[string]interface{}
 
 type GremlinData struct {
 	Id         uuid.UUID              `json:"id"`
 	Label      string                 `json:"label"`
 	Type       string                 `json:"type"`
-	InVLablel  string                 `json:"inVLabel"`
-	OutVLablel string                 `json:"outVLabel"`
+	InVLabel   string                 `json:"inVLabel"`
+	OutVLabel  string                 `json:"outVLabel"`
 	InV        uuid.UUID              `json"inV"`
 	OutV       uuid.UUID              `json"outV"`
 	Properties map[string]interface{} `json:"properties"`

@@ -130,7 +130,7 @@ func (c *Client) verbose(frmt string, i ...interface{}) {
 	}
 }
 
-func (c *Client) executeRequest(query string, bindings, rebindings map[string]string) ([]*GremlinData, error) {
+func (c *Client) executeRequest(query string, bindings, rebindings map[string]string) ([]*GremlinRespData, error) {
 	req := prepareRequest(query, bindings, rebindings)
 	msg, err := packageRequest(req)
 	if err != nil {
@@ -157,7 +157,7 @@ func (c *Client) authenticate(requestId uuid.UUID) (err error) {
 }
 
 // Execute formats a raw Gremlin query, sends it to Gremlin Server, and returns the result.
-func (c *Client) Execute(query string, bindings, rebindings map[string]string) ([]*GremlinData, error) {
+func (c *Client) Execute(query string, bindings, rebindings map[string]string) ([]*GremlinRespData, error) {
 	c.verbose("connection: %+v", c.conn)
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
@@ -169,7 +169,7 @@ func (c *Client) Execute(query string, bindings, rebindings map[string]string) (
 }
 
 // Get formats a raw Gremlin query, sends it to Gremlin Server, and populates the passed []interface.
-func (c *Client) Get(query string, ptr interface{}) error {
+func (c *Client) Get(query string, bindings map[string]string, ptr interface{}) error {
 	if c.conn.isDisposed() {
 		return ErrorConnectionDisposed
 	}
@@ -182,10 +182,38 @@ func (c *Client) Get(query string, ptr interface{}) error {
 		strct = reflect.ValueOf(ptr).Elem()
 	}
 
-	respSlice, err := c.executeRequest(query, nil, nil)
+	var respSlice []*GremlinData
+	respDataSlice, err := c.executeRequest(query, bindings, nil)
 	if err != nil {
 		return err
 	}
+
+	// if the return is empty return
+	if len(respDataSlice) == 0 {
+		return nil
+	}
+
+	// if the returndata is GraphSON cast to GremlinData
+	// we try to marshal the response data slice
+	obj, err := json.Marshal(respDataSlice)
+	if err != nil {
+		c.debug("err marshaling resp data slice: %s", err)
+		return nil
+	}
+	if _, ok := (*respDataSlice[0])["properties"]; ok {
+		err := json.Unmarshal(obj, &respSlice)
+		if err != nil {
+			c.debug("err unmarshaling response slice: %s", err)
+			return err
+		}
+	} else {
+		err := json.Unmarshal(obj, &ptr)
+		if err != nil {
+			c.debug("err unmarshaling response slice: %s", err)
+			return err
+		}
+	}
+
 	// get the underlying struct type
 	sType := reflect.TypeOf(strct.Interface()).Elem()
 
@@ -351,7 +379,7 @@ func (c *Client) Close() {
 }
 
 // AddV takes a label and a interface and adds it a vertex to the graph
-func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
+func (c *Client) AddV(label string, data interface{}) ([]*GremlinRespData, error) {
 	c.verbose("passed interface: %s", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
@@ -408,7 +436,7 @@ func (c *Client) AddV(label string, data interface{}) ([]*GremlinData, error) {
 }
 
 // UpdateV takes a interface and updates the vertex in the graph
-func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
+func (c *Client) UpdateV(data interface{}) ([]*GremlinRespData, error) {
 	c.verbose("passed interface: %s", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
@@ -469,7 +497,7 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinData, error) {
 }
 
 // DropV takes a interface and drops the vertex from the graph
-func (c *Client) DropV(data interface{}) ([]*GremlinData, error) {
+func (c *Client) DropV(data interface{}) ([]*GremlinRespData, error) {
 	c.verbose("passed interface: %s", spew.Sdump(data))
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
@@ -486,7 +514,7 @@ func (c *Client) DropV(data interface{}) ([]*GremlinData, error) {
 }
 
 // AddE takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
-func (c *Client) AddE(label string, from, to interface{}) ([]*GremlinData, error) {
+func (c *Client) AddE(label string, from, to interface{}) ([]*GremlinRespData, error) {
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -507,7 +535,7 @@ func (c *Client) AddE(label string, from, to interface{}) ([]*GremlinData, error
 }
 
 // AddEById takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
-func (c *Client) AddEById(label string, from, to uuid.UUID) ([]*GremlinData, error) {
+func (c *Client) AddEById(label string, from, to uuid.UUID) ([]*GremlinRespData, error) {
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -516,7 +544,7 @@ func (c *Client) AddEById(label string, from, to uuid.UUID) ([]*GremlinData, err
 }
 
 // AddEWithProps takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
-func (c *Client) AddEWithProps(label string, from, to interface{}, props map[string]interface{}) ([]*GremlinData, error) {
+func (c *Client) AddEWithProps(label string, from, to interface{}, props map[string]interface{}) ([]*GremlinRespData, error) {
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -542,7 +570,7 @@ func (c *Client) AddEWithProps(label string, from, to interface{}, props map[str
 }
 
 // AddEWithPropsById takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
-func (c *Client) AddEWithPropsById(label string, from, to uuid.UUID, props map[string]interface{}) ([]*GremlinData, error) {
+func (c *Client) AddEWithPropsById(label string, from, to uuid.UUID, props map[string]interface{}) ([]*GremlinRespData, error) {
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -556,7 +584,7 @@ func (c *Client) AddEWithPropsById(label string, from, to uuid.UUID, props map[s
 }
 
 // DropE takes a label, from UUID and to UUID then drops the edge between the two vertex in the graph
-func (c *Client) DropE(label string, from, to interface{}) ([]*GremlinData, error) {
+func (c *Client) DropE(label string, from, to interface{}) ([]*GremlinRespData, error) {
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}
@@ -577,7 +605,7 @@ func (c *Client) DropE(label string, from, to interface{}) ([]*GremlinData, erro
 }
 
 // DropEById takes a label, from UUID and to UUID then drops the edge between the two vertex in the graph
-func (c *Client) DropEById(label string, from, to uuid.UUID) ([]*GremlinData, error) {
+func (c *Client) DropEById(label string, from, to uuid.UUID) ([]*GremlinRespData, error) {
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
 	}

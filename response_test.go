@@ -33,28 +33,30 @@ var dummyPartialResponse2 = []byte(`{"result":{"data":[{"id": "b0a7e695-d43f-48f
  "requestId":"1d6d02bd-8e56-421d-9438-3bd6d0079ff1",
  "status":{"code":200,"attributes":{},"message":""}}`)
 
+var dataMap = &GremlinRespData{"id": id2.String(), "label": "test"}
+
 var dummySuccessfulResponseMarshalled = &GremlinResponse{
 	RequestId: id,
 	Status:    GremlinStatus{Code: 200},
-	Result:    GremlinResult{Data: []*GremlinData{&GremlinData{Id: id2, Label: "test"}}},
+	Result:    GremlinResult{Data: []*GremlinRespData{dataMap}},
 }
 
 var dummyNeedAuthenticationResponseMarshalled = &GremlinResponse{
 	RequestId: id,
 	Status:    GremlinStatus{Code: 407},
-	Result:    GremlinResult{Data: []*GremlinData{}},
+	Result:    GremlinResult{Data: []*GremlinRespData{}},
 }
 
 var dummyPartialResponse1Marshalled = &GremlinResponse{
 	RequestId: id,
 	Status:    GremlinStatus{Code: 206}, // Code 206 indicates that the response is not the terminating response in a sequence of responses
-	Result:    GremlinResult{Data: []*GremlinData{}},
+	Result:    GremlinResult{Data: []*GremlinRespData{}},
 }
 
 var dummyPartialResponse2Marshalled = &GremlinResponse{
 	RequestId: id,
 	Status:    GremlinStatus{Code: 200},
-	Result:    GremlinResult{Data: []*GremlinData{}},
+	Result:    GremlinResult{Data: []*GremlinRespData{}},
 }
 
 // TestResponseHandling tests the overall response handling mechanism of gremgo
@@ -126,7 +128,7 @@ func TestResponseSortingMultipleResponse(t *testing.T) {
 	c.saveResponse(dummyPartialResponse1Marshalled)
 	c.saveResponse(dummyPartialResponse2Marshalled)
 
-	var expected []*GremlinData
+	var expected []*GremlinRespData
 	expected = append(expected, dummyPartialResponse1Marshalled.Result.Data...)
 	expected = append(expected, dummyPartialResponse2Marshalled.Result.Data...)
 
@@ -147,7 +149,7 @@ func TestResponseRetrieval(t *testing.T) {
 
 	resp := c.retrieveResponse(dummyPartialResponse1Marshalled.RequestId)
 
-	var expected []*GremlinData
+	var expected []*GremlinRespData
 	expected = append(expected, dummyPartialResponse1Marshalled.Result.Data...)
 	expected = append(expected, dummyPartialResponse2Marshalled.Result.Data...)
 
