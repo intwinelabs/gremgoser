@@ -212,6 +212,7 @@ func (c *Client) Get(query string, bindings map[string]string, ptr interface{}) 
 			c.debug("err unmarshaling response slice: %s", err)
 			return err
 		}
+		return nil
 	}
 
 	// get the underlying struct type
