@@ -14,7 +14,7 @@ type requester interface {
 }
 
 // prepareRequest packages a query and binding into the format that Gremlin Server accepts
-func prepareRequest(query string, bindings, rebindings map[string]string) *GremlinRequest {
+func prepareRequest(query string, bindings, rebindings map[string]interface{}) *GremlinRequest {
 	req := &GremlinRequest{}
 	req.RequestId = uuid.New()
 	req.Op = "eval"

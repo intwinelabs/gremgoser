@@ -130,7 +130,7 @@ func (c *Client) verbose(frmt string, i ...interface{}) {
 	}
 }
 
-func (c *Client) executeRequest(query string, bindings, rebindings map[string]string) ([]*GremlinRespData, error) {
+func (c *Client) executeRequest(query string, bindings, rebindings map[string]interface{}) ([]*GremlinRespData, error) {
 	req := prepareRequest(query, bindings, rebindings)
 	msg, err := packageRequest(req)
 	if err != nil {
@@ -157,7 +157,7 @@ func (c *Client) authenticate(requestId uuid.UUID) (err error) {
 }
 
 // Execute formats a raw Gremlin query, sends it to Gremlin Server, and returns the result.
-func (c *Client) Execute(query string, bindings, rebindings map[string]string) ([]*GremlinRespData, error) {
+func (c *Client) Execute(query string, bindings, rebindings map[string]interface{}) ([]*GremlinRespData, error) {
 	c.verbose("connection: %+v", c.conn)
 	if c.conn.isDisposed() {
 		return nil, ErrorConnectionDisposed
@@ -169,7 +169,7 @@ func (c *Client) Execute(query string, bindings, rebindings map[string]string) (
 }
 
 // Get formats a raw Gremlin query, sends it to Gremlin Server, and populates the passed []interface.
-func (c *Client) Get(query string, bindings map[string]string, ptr interface{}) error {
+func (c *Client) Get(query string, bindings map[string]interface{}, ptr interface{}) error {
 	if c.conn.isDisposed() {
 		return ErrorConnectionDisposed
 	}
@@ -532,7 +532,7 @@ func (c *Client) AddE(label string, from, to interface{}) ([]*GremlinRespData, e
 	}
 
 	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", fid.Interface(), label, tid.Interface())
-	return c.Execute(q, map[string]string{}, map[string]string{})
+	return c.Execute(q, nil, nil)
 }
 
 // AddEById takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
@@ -541,7 +541,7 @@ func (c *Client) AddEById(label string, from, to uuid.UUID) ([]*GremlinRespData,
 		return nil, ErrorConnectionDisposed
 	}
 	q := fmt.Sprintf("g.V('%s').addE('%s').to(g.V('%s'))", from.String(), label, to.String())
-	return c.Execute(q, map[string]string{}, map[string]string{})
+	return c.Execute(q, nil, nil)
 }
 
 // AddEWithProps takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
@@ -567,7 +567,7 @@ func (c *Client) AddEWithProps(label string, from, to interface{}, props map[str
 		return nil, err
 	}
 	q = q + p
-	return c.Execute(q, map[string]string{}, map[string]string{})
+	return c.Execute(q, nil, nil)
 }
 
 // AddEWithPropsById takes a label, from UUID and to UUID then creates a edge between the two vertex in the graph
@@ -581,7 +581,7 @@ func (c *Client) AddEWithPropsById(label string, from, to uuid.UUID, props map[s
 		return nil, err
 	}
 	q = q + p
-	return c.Execute(q, map[string]string{}, map[string]string{})
+	return c.Execute(q, nil, nil)
 }
 
 // DropE takes a label, from UUID and to UUID then drops the edge between the two vertex in the graph
@@ -602,7 +602,7 @@ func (c *Client) DropE(label string, from, to interface{}) ([]*GremlinRespData, 
 	}
 
 	q := fmt.Sprintf("g.V('%s').outE('%s').and(inV().is('%s')).drop()", fid.Interface(), label, tid.Interface())
-	return c.Execute(q, map[string]string{}, map[string]string{})
+	return c.Execute(q, nil, nil)
 }
 
 // DropEById takes a label, from UUID and to UUID then drops the edge between the two vertex in the graph
@@ -611,7 +611,7 @@ func (c *Client) DropEById(label string, from, to uuid.UUID) ([]*GremlinRespData
 		return nil, ErrorConnectionDisposed
 	}
 	q := fmt.Sprintf("g.V('%s').outE('%s').and(inV().is('%s')).drop()", from.String(), label, to.String())
-	return c.Execute(q, map[string]string{}, map[string]string{})
+	return c.Execute(q, nil, nil)
 }
 
 // getProprtyValue takes a property map slice and return the value
