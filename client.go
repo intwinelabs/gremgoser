@@ -293,7 +293,7 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 								if ok {
 									f.SetBool(_v)
 								}
-							} else if f.Kind() == reflect.Struct { // take JSON string and unmarshal into struct
+							} else if f.Kind() == reflect.Struct || f.Kind() == reflect.Map { // take JSON string and unmarshal into struct
 								_v, ok := v.(string)
 								if ok {
 									s := reflect.New(f.Type()).Interface()
