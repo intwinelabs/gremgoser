@@ -29,7 +29,6 @@ func newClient(conf *ClientConfig) *Client {
 // NewClient returns a gremgoser client for interaction with the Gremlin Server specified in the host IP.
 func NewClient(conf *ClientConfig) (*Client, chan error) {
 	errs := make(chan error)
-
 	if conf.URI == "" {
 		errs <- ErrorInvalidURI
 		return nil, errs
@@ -164,7 +163,7 @@ func (c *Client) Execute(query string, bindings, rebindings map[string]interface
 	}
 	c.verbose("query: %s", query)
 	resp, err := c.executeRequest(query, bindings, rebindings)
-	c.verbose("response: %+v", resp)
+	c.verbose("response: %+v", spew.Sprint(resp))
 	return resp, err
 }
 
@@ -406,7 +405,7 @@ func (c *Client) AddV(label string, data interface{}) ([]*GremlinRespData, error
 		val := d.Field(i).Interface()
 		if len(opts) == 0 {
 			return nil, fmt.Errorf("gremgoser: interface field graph tag does not contain a tag option type, field type: %T", val)
-		} else if opts.Contains("string") {
+		} else if opts.Contains("string") || opts.Contains("partitionKey") {
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", val)))
 		} else if opts.Contains("bool") || opts.Contains("number") {
 			q = fmt.Sprintf("%s.property('%s', %v)", q, name, val)
@@ -463,6 +462,8 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinRespData, error) {
 		val := d.Field(i).Interface()
 		if len(opts) == 0 {
 			return nil, fmt.Errorf("gremgoser: interface field graph tag does not contain a tag option type, field type: %T", val)
+		} else if opts.Contains("partitionKey") {
+			continue
 		} else if opts.Contains("string") {
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", val)))
 		} else if opts.Contains("bool") || opts.Contains("number") {

@@ -27,6 +27,9 @@ func (ws *Ws) connect() error {
 		HandshakeTimeout: 60 * time.Second, // Timeout or else we'll hang forever and never fail on bad hosts.
 	}
 	ws.conn, resp, err = d.Dial(ws.uri, http.Header{})
+	if err != nil {
+		ws.verbosef("error dialing websocket connection (%s): %s", ws.uri, err)
+	}
 	ws.verbosef("dial response: %+v", resp)
 	if err != nil {
 		// As of 3.2.2 the URL has changed.

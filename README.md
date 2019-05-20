@@ -21,6 +21,7 @@ Documentation
 Struct Tags
 ==========
 * To serialize data in and out of the graph you must supply proper graph struct tags for each field of the struct you would like to serialize:
+	* partitionKey - `graph:"partitionKeyName,partitionKey"` 
 	* bool - `graph:"boolName,bool"`
 	* string - `graph:"stringName,string"` 
 	* int, int8, int16, int32, int64 - `graph:"numberName,number"`

@@ -15,8 +15,8 @@ func TestRequestPreparation(t *testing.T) {
 	assert := assert.New(t)
 
 	query := "g.V(x)"
-	bindings := map[string]string{"x": "10"}
-	rebindings := map[string]string{}
+	bindings := map[string]interface{}{"x": "10"}
+	rebindings := map[string]interface{}{}
 	req := prepareRequest(query, bindings, rebindings)
 	assert.NotNil(req)
 	assert.IsType(&GremlinRequest{}, req)
