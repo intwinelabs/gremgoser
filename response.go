@@ -11,6 +11,7 @@ func (c *Client) handleResponse(msg []byte) error {
 	resp, err := marshalResponse(msg)
 	if err != nil && err != Error407Authenticate {
 		c.debug("error handling response: %s", err)
+		c.saveResponse(resp)
 		return err
 	}
 

@@ -87,25 +87,15 @@ func NewClient(conf *ClientConfig) (*Client, chan error) {
 	go c.readWorker(c.errs, quit)
 	go c.conn.ping(c.errs)
 
-	// Force authentication
-	if c.conf.AuthReq != nil {
-		c.Execute("g.V('__FORCE____AUTH__')", nil, nil)
-	}
-
 	return c, c.errs
 }
 
-// Reconnect trys to reconnect the underlying ws connection
+// Reconnect tries to reconnect the underlying ws connection
 func (c *Client) Reconnect() {
 	if !c.conn.isConnected() {
 		err := c.conn.connect()
 		if err != nil {
 			c.errs <- err
-		} else {
-			// Force authentication
-			if c.conf.AuthReq != nil {
-				c.Execute("g.V('__FORCE____AUTH__')", nil, nil)
-			}
 		}
 	}
 }
