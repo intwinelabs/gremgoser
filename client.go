@@ -173,6 +173,7 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 
 	var respSlice []*GremlinData
 	respDataSlice, err := c.executeRequest(query, bindings, nil)
+	c.debug("\n\n\n%s\n\n\n", spew.Sdump(respDataSlice))
 	if err != nil {
 		return err
 	}
@@ -189,14 +190,18 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 		c.debug("err marshaling resp data slice: %s", err)
 		return nil
 	}
+	decoder := json.NewDecoder(bytes.NewReader(obj))
+	decoder.UseNumber()
 	if _, ok := (*respDataSlice[0])["properties"]; ok {
-		err := json.Unmarshal(obj, &respSlice)
+		err := decoder.Decode(&respSlice)
+		//err := json.Unmarshal(obj, &respSlice)
 		if err != nil {
 			c.debug("err unmarshaling response slice: %s", err)
 			return err
 		}
 	} else {
-		err := json.Unmarshal(obj, &ptr)
+		err := decoder.Decode(&ptr)
+		//err := json.Unmarshal(obj, &ptr)
 		if err != nil {
 			c.debug("err unmarshaling response slice: %s", err)
 			return err
@@ -212,6 +217,7 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 	sSlice := reflect.MakeSlice(reflect.SliceOf(sType), lenRespSlice, lenRespSlice+1)
 	// iterate over the GremlinData respSlice
 	for j, innerItem := range respSlice {
+		spew.Dump(innerItem)
 		// create a new struct to populate
 		s := reflect.New(sType)
 		// check for Id field
@@ -255,26 +261,28 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 									f.SetString(_v)
 								}
 							} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 { // Set as int
-								_v, ok := v.(float64)
-								__v := int64(_v)
+								_v, ok := v.(json.Number)
+								__v, _ := _v.Int64()
 								if ok {
 									if !f.OverflowInt(__v) {
 										f.SetInt(__v)
 									}
 								}
 							} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 { // Set as float
-								_v, ok := v.(float64)
+								_v, ok := v.(json.Number)
+								__v, _ := _v.Float64()
 								if ok {
-									if !f.OverflowFloat(_v) {
-										f.SetFloat(_v)
+									if !f.OverflowFloat(__v) {
+										f.SetFloat(__v)
 									}
 								}
 							} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 { // Set as uint
-								_v, ok := v.(float64)
-								__v := uint64(_v)
+								_v, ok := v.(json.Number)
+								__v, _ := _v.Int64()
+								___v := uint64(__v)
 								if ok {
-									if !f.OverflowUint(__v) {
-										f.SetUint(__v)
+									if !f.OverflowUint(___v) {
+										f.SetUint(___v)
 									}
 								}
 							} else if f.Kind() == reflect.Bool { // Set as bool

@@ -1,6 +1,7 @@
 package gremgoser
 
 import (
+	"bytes"
 	"encoding/json"
 	"time"
 
@@ -28,7 +29,10 @@ func (c *Client) handleResponse(msg []byte) error {
 // marshalResponse creates a response struct for every incoming response for further manipulation
 func marshalResponse(msg []byte) (*GremlinResponse, error) {
 	resp := &GremlinResponse{}
-	err := json.Unmarshal(msg, resp)
+	decoder := json.NewDecoder(bytes.NewReader(msg))
+	decoder.UseNumber()
+	err := decoder.Decode(resp)
+	//err := json.Unmarshal(msg, resp)
 	if err != nil {
 		return resp, err
 	}
