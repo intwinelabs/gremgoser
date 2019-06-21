@@ -217,7 +217,7 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 	sSlice := reflect.MakeSlice(reflect.SliceOf(sType), lenRespSlice, lenRespSlice+1)
 	// iterate over the GremlinData respSlice
 	for j, innerItem := range respSlice {
-		spew.Dump(innerItem)
+		//spew.Dump(innerItem)
 		// create a new struct to populate
 		s := reflect.New(sType)
 		// check for Id field
