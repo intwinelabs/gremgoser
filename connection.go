@@ -186,7 +186,7 @@ func (ws *Ws) debugf(frmt string, i ...interface{}) {
 
 // verbosef prints to the configured logger if debug is enabled
 func (ws *Ws) verbosef(frmt string, i ...interface{}) {
-	if ws.debug {
+	if ws.verbose {
 		ws.logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: WS: VERBOSE: "+frmt, i...))
 	}
 }
