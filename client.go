@@ -323,27 +323,31 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 										pSlice.Index(i).SetString(_v)
 									}
 								} else if f.Type().Elem().Kind() == reflect.Int || f.Type().Elem().Kind() == reflect.Int8 || f.Type().Elem().Kind() == reflect.Int16 || f.Type().Elem().Kind() == reflect.Int32 || f.Type().Elem().Kind() == reflect.Int64 { // Set as int
-									_v, ok := v.(float64)
-									__v := int64(_v)
+									_v, ok := v.(json.Number)
+									__v, _ := _v.Int64()
+									___v := int64(__v)
 									if ok {
 
-										if !pSlice.Index(i).OverflowInt(__v) {
-											pSlice.Index(i).SetInt(__v)
+										if !pSlice.Index(i).OverflowInt(___v) {
+											pSlice.Index(i).SetInt(___v)
 										}
 									}
 								} else if f.Type().Elem().Kind() == reflect.Float32 || f.Type().Elem().Kind() == reflect.Float64 { // Set as float
-									_v, ok := v.(float64)
+									_v, ok := v.(json.Number)
+									__v, _ := _v.Float64()
+									___v := float64(__v)
 									if ok {
-										if !pSlice.Index(i).OverflowFloat(_v) {
-											pSlice.Index(i).SetFloat(_v)
+										if !pSlice.Index(i).OverflowFloat(___v) {
+											pSlice.Index(i).SetFloat(___v)
 										}
 									}
 								} else if f.Type().Elem().Kind() == reflect.Uint || f.Type().Elem().Kind() == reflect.Uint8 || f.Type().Elem().Kind() == reflect.Uint16 || f.Type().Elem().Kind() == reflect.Uint32 || f.Type().Elem().Kind() == reflect.Uint64 { // Set as uint
-									_v, ok := v.(float64)
-									__v := uint64(_v)
+									_v, ok := v.(json.Number)
+									__v, _ := _v.Int64()
+									___v := uint64(__v)
 									if ok {
-										if !pSlice.Index(i).OverflowUint(__v) {
-											pSlice.Index(i).SetUint(__v)
+										if !pSlice.Index(i).OverflowUint(___v) {
+											pSlice.Index(i).SetUint(___v)
 										}
 									}
 								} else if f.Type().Elem().Kind() == reflect.Bool { // Set as bool

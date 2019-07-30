@@ -189,36 +189,36 @@ func TestAddV(t *testing.T) {
 			"label": "test",
 			"type":  "vertex",
 			"properties": map[string]interface{}{
-				"kk": []interface{}{map[string]interface{}{"value": float64(100), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": float64(100)}},
-				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": float64(20)}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": float64(20)}},
-				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": float64(90)}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": float64(90)}},
-				"i":  []interface{}{map[string]interface{}{"id": "2295b3de-fc5b-42c9-8b04-44b12fbe1346", "value": float64(80)}},
+				"kk": []interface{}{map[string]interface{}{"value": json.Number("100"), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": json.Number("100")}},
+				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": json.Number("20")}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": json.Number("20")}},
+				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": json.Number("90")}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": json.Number("90")}},
+				"i":  []interface{}{map[string]interface{}{"id": "2295b3de-fc5b-42c9-8b04-44b12fbe1346", "value": json.Number("80")}},
 				"aa": []interface{}{map[string]interface{}{"id": "225ed5a7-b000-4a59-b6c3-332682a5216a", "value": "aa"}, map[string]interface{}{"id": "9cbee039-c5b4-4e75-a1b0-346a47e5dc36", "value": "aa"}},
-				"c":  []interface{}{map[string]interface{}{"value": float64(20), "id": "8e58d327-e06b-44e4-a5d9-75558cdca2dc"}},
-				"ii": []interface{}{map[string]interface{}{"id": "fe3a148a-4a80-4ca2-851b-5dc473f549e6", "value": float64(80)}, map[string]interface{}{"id": "021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f", "value": float64(80)}},
-				"m":  []interface{}{map[string]interface{}{"value": float64(120), "id": "a4b507fe-bb16-4b4a-aa1d-cf922af67cd2"}},
-				"x":  []interface{}{map[string]interface{}{"id": "56b71ade-d0aa-416f-8da3-517391fd7ee4", "value": float64(130)}},
-				"b":  []interface{}{map[string]interface{}{"value": float64(10), "id": "91df576d-3501-4303-9d89-1c8409ce6ff4"}},
-				"dd": []interface{}{map[string]interface{}{"id": "51336fa2-ebf9-4d7a-9ec5-0128a6341ea6", "value": float64(30)}, map[string]interface{}{"id": "337fe24f-8ea3-40ea-b726-e7169883618b", "value": float64(30)}},
-				"h":  []interface{}{map[string]interface{}{"id": "3e16edbc-5a77-4b97-bdb4-4695996d8915", "value": float64(0.07)}},
-				"j":  []interface{}{map[string]interface{}{"id": "e7235d64-4212-448d-869f-612cf2403b96", "value": float64(90)}},
-				"xx": []interface{}{map[string]interface{}{"id": "9cf5c2a7-45eb-4e58-bf5a-9f15186c0819", "value": float64(140)}, map[string]interface{}{"id": "122191a7-5437-45ae-9ec6-1a73fee5c996", "value": float64(140)}},
-				"ee": []interface{}{map[string]interface{}{"value": float64(40), "id": "8d21dad3-5ed7-4925-bfae-12b345592a36"}, map[string]interface{}{"id": "6277ad55-a3ed-41bc-8ad2-1cfe6e60938b", "value": float64(40)}},
-				"f":  []interface{}{map[string]interface{}{"id": "ed8cf6a7-d585-4575-a08c-cf4aa27f1491", "value": float64(50)}},
-				"k":  []interface{}{map[string]interface{}{"id": "a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9", "value": float64(100)}},
-				"l":  []interface{}{map[string]interface{}{"id": "e7c6ddee-729e-44a4-b977-7d3eafe47497", "value": float64(110)}},
+				"c":  []interface{}{map[string]interface{}{"value": json.Number("20"), "id": "8e58d327-e06b-44e4-a5d9-75558cdca2dc"}},
+				"ii": []interface{}{map[string]interface{}{"id": "fe3a148a-4a80-4ca2-851b-5dc473f549e6", "value": json.Number("80")}, map[string]interface{}{"id": "021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f", "value": json.Number("80")}},
+				"m":  []interface{}{map[string]interface{}{"value": json.Number("120"), "id": "a4b507fe-bb16-4b4a-aa1d-cf922af67cd2"}},
+				"x":  []interface{}{map[string]interface{}{"id": "56b71ade-d0aa-416f-8da3-517391fd7ee4", "value": json.Number("130")}},
+				"b":  []interface{}{map[string]interface{}{"value": json.Number("10"), "id": "91df576d-3501-4303-9d89-1c8409ce6ff4"}},
+				"dd": []interface{}{map[string]interface{}{"id": "51336fa2-ebf9-4d7a-9ec5-0128a6341ea6", "value": json.Number("30")}, map[string]interface{}{"id": "337fe24f-8ea3-40ea-b726-e7169883618b", "value": json.Number("30")}},
+				"h":  []interface{}{map[string]interface{}{"id": "3e16edbc-5a77-4b97-bdb4-4695996d8915", "value": json.Number("0.07")}},
+				"j":  []interface{}{map[string]interface{}{"id": "e7235d64-4212-448d-869f-612cf2403b96", "value": json.Number("90")}},
+				"xx": []interface{}{map[string]interface{}{"id": "9cf5c2a7-45eb-4e58-bf5a-9f15186c0819", "value": json.Number("140")}, map[string]interface{}{"id": "122191a7-5437-45ae-9ec6-1a73fee5c996", "value": json.Number("140")}},
+				"ee": []interface{}{map[string]interface{}{"value": json.Number("40"), "id": "8d21dad3-5ed7-4925-bfae-12b345592a36"}, map[string]interface{}{"id": "6277ad55-a3ed-41bc-8ad2-1cfe6e60938b", "value": json.Number("40")}},
+				"f":  []interface{}{map[string]interface{}{"id": "ed8cf6a7-d585-4575-a08c-cf4aa27f1491", "value": json.Number("50")}},
+				"k":  []interface{}{map[string]interface{}{"id": "a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9", "value": json.Number("100")}},
+				"l":  []interface{}{map[string]interface{}{"id": "e7c6ddee-729e-44a4-b977-7d3eafe47497", "value": json.Number("110")}},
 				"nn": []interface{}{map[string]interface{}{"id": "7af1d164-3966-4dde-93fa-511a936601f5", "value": true}, map[string]interface{}{"id": "90be7e5c-8bf6-4bfd-bd01-38be1697d9f8", "value": true}},
-				"d":  []interface{}{map[string]interface{}{"id": "565d7400-e75b-4813-aa39-6c09cae781a8", "value": float64(30)}},
-				"g":  []interface{}{map[string]interface{}{"value": float64(0.06), "id": "2c6860ac-7151-48f9-b866-5b40a3488d1e"}},
+				"d":  []interface{}{map[string]interface{}{"id": "565d7400-e75b-4813-aa39-6c09cae781a8", "value": json.Number("30")}},
+				"g":  []interface{}{map[string]interface{}{"value": json.Number("0.06"), "id": "2c6860ac-7151-48f9-b866-5b40a3488d1e"}},
 				"n":  []interface{}{map[string]interface{}{"id": "954cc7f9-d655-4123-a66d-e3e665cf7d49", "value": true}},
-				"bb": []interface{}{map[string]interface{}{"id": "b96f76ed-028a-4e2f-942e-2adf37f5bcb0", "value": float64(10)}, map[string]interface{}{"id": "7f010e2c-b764-4601-b190-4b34372203e7", "value": float64(10)}},
-				"hh": []interface{}{map[string]interface{}{"value": float64(0.07), "id": "b2266aff-1f18-4391-98f8-5ad6a542a2e1"}, map[string]interface{}{"id": "709a88dd-8fc4-4c8d-bd31-61962feff9b2", "value": float64(0.07)}},
-				"ff": []interface{}{map[string]interface{}{"id": "4c2afab4-df69-490b-8cf0-c8311808c0fc", "value": float64(50)}, map[string]interface{}{"id": "38e68ad4-b9f8-4256-9638-1e52cdbb989a", "value": float64(50)}},
-				"gg": []interface{}{map[string]interface{}{"value": float64(0.06), "id": "a0a129f4-bfa4-4d1a-bc77-df5b63049197"}, map[string]interface{}{"id": "3c8b51c4-8b40-4d5f-a79d-6a9d74929837", "value": float64(0.06)}},
-				"ll": []interface{}{map[string]interface{}{"id": "ff4d7387-b3f7-41ec-9cee-912bb9220545", "value": float64(110)}, map[string]interface{}{"id": "519d212c-4774-49a1-bc4e-3715af929c38", "value": float64(110)}},
-				"mm": []interface{}{map[string]interface{}{"id": "0487cc86-ee49-4649-8131-d43610235c40", "value": float64(120)}, map[string]interface{}{"id": "b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12", "value": float64(120)}},
+				"bb": []interface{}{map[string]interface{}{"id": "b96f76ed-028a-4e2f-942e-2adf37f5bcb0", "value": json.Number("10")}, map[string]interface{}{"id": "7f010e2c-b764-4601-b190-4b34372203e7", "value": json.Number("10")}},
+				"hh": []interface{}{map[string]interface{}{"value": json.Number("0.07"), "id": "b2266aff-1f18-4391-98f8-5ad6a542a2e1"}, map[string]interface{}{"id": "709a88dd-8fc4-4c8d-bd31-61962feff9b2", "value": json.Number("0.07")}},
+				"ff": []interface{}{map[string]interface{}{"id": "4c2afab4-df69-490b-8cf0-c8311808c0fc", "value": json.Number("50")}, map[string]interface{}{"id": "38e68ad4-b9f8-4256-9638-1e52cdbb989a", "value": json.Number("50")}},
+				"gg": []interface{}{map[string]interface{}{"value": json.Number("0.06"), "id": "a0a129f4-bfa4-4d1a-bc77-df5b63049197"}, map[string]interface{}{"id": "3c8b51c4-8b40-4d5f-a79d-6a9d74929837", "value": json.Number("0.06")}},
+				"ll": []interface{}{map[string]interface{}{"id": "ff4d7387-b3f7-41ec-9cee-912bb9220545", "value": json.Number("110")}, map[string]interface{}{"id": "519d212c-4774-49a1-bc4e-3715af929c38", "value": json.Number("110")}},
+				"mm": []interface{}{map[string]interface{}{"id": "0487cc86-ee49-4649-8131-d43610235c40", "value": json.Number("120")}, map[string]interface{}{"id": "b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12", "value": json.Number("120")}},
 				"a":  []interface{}{map[string]interface{}{"value": "aa", "id": "15d0a33b-d369-4b61-b162-320ece53cfa1"}},
-				"e":  []interface{}{map[string]interface{}{"id": "bf35b756-0640-48c6-9601-aab77c6aa603", "value": float64(40)}}},
+				"e":  []interface{}{map[string]interface{}{"id": "bf35b756-0640-48c6-9601-aab77c6aa603", "value": json.Number("40")}}},
 		},
 	}
 
@@ -304,36 +304,36 @@ func TestUpdateV(t *testing.T) {
 			"label": "test",
 			"type":  "vertex",
 			"properties": map[string]interface{}{
-				"kk": []interface{}{map[string]interface{}{"value": float64(100), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": float64(100)}},
-				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": float64(20)}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": float64(20)}},
-				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": float64(90)}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": float64(90)}},
-				"i":  []interface{}{map[string]interface{}{"id": "2295b3de-fc5b-42c9-8b04-44b12fbe1346", "value": float64(80)}},
+				"kk": []interface{}{map[string]interface{}{"value": json.Number("100"), "id": "740dca9e-c5d7-40d3-8d68-feb48090a638"}, map[string]interface{}{"id": "a0587e7d-6bf5-4cba-b911-0507d0469068", "value": json.Number("100")}},
+				"cc": []interface{}{map[string]interface{}{"id": "8f16c7cd-4125-4d29-b714-5d8f561bb8e4", "value": json.Number("20")}, map[string]interface{}{"id": "84f44c14-f038-47b3-a0b7-9f14dd11ddde", "value": json.Number("20")}},
+				"jj": []interface{}{map[string]interface{}{"id": "84e17824-94be-47e9-b7bb-7e46ed5c065f", "value": json.Number("90")}, map[string]interface{}{"id": "20dffbe0-4c63-4b15-9b5d-43111bd10525", "value": json.Number("90")}},
+				"i":  []interface{}{map[string]interface{}{"id": "2295b3de-fc5b-42c9-8b04-44b12fbe1346", "value": json.Number("80")}},
 				"aa": []interface{}{map[string]interface{}{"id": "225ed5a7-b000-4a59-b6c3-332682a5216a", "value": "aa"}, map[string]interface{}{"id": "9cbee039-c5b4-4e75-a1b0-346a47e5dc36", "value": "aa"}},
-				"c":  []interface{}{map[string]interface{}{"value": float64(20), "id": "8e58d327-e06b-44e4-a5d9-75558cdca2dc"}},
-				"ii": []interface{}{map[string]interface{}{"id": "fe3a148a-4a80-4ca2-851b-5dc473f549e6", "value": float64(80)}, map[string]interface{}{"id": "021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f", "value": float64(80)}},
-				"m":  []interface{}{map[string]interface{}{"value": float64(120), "id": "a4b507fe-bb16-4b4a-aa1d-cf922af67cd2"}},
-				"x":  []interface{}{map[string]interface{}{"id": "56b71ade-d0aa-416f-8da3-517391fd7ee4", "value": float64(130)}},
-				"b":  []interface{}{map[string]interface{}{"value": float64(10), "id": "91df576d-3501-4303-9d89-1c8409ce6ff4"}},
-				"dd": []interface{}{map[string]interface{}{"id": "51336fa2-ebf9-4d7a-9ec5-0128a6341ea6", "value": float64(30)}, map[string]interface{}{"id": "337fe24f-8ea3-40ea-b726-e7169883618b", "value": float64(30)}},
-				"h":  []interface{}{map[string]interface{}{"id": "3e16edbc-5a77-4b97-bdb4-4695996d8915", "value": float64(0.07)}},
-				"j":  []interface{}{map[string]interface{}{"id": "e7235d64-4212-448d-869f-612cf2403b96", "value": float64(90)}},
-				"xx": []interface{}{map[string]interface{}{"id": "9cf5c2a7-45eb-4e58-bf5a-9f15186c0819", "value": float64(140)}, map[string]interface{}{"id": "122191a7-5437-45ae-9ec6-1a73fee5c996", "value": float64(140)}},
-				"ee": []interface{}{map[string]interface{}{"value": float64(40), "id": "8d21dad3-5ed7-4925-bfae-12b345592a36"}, map[string]interface{}{"id": "6277ad55-a3ed-41bc-8ad2-1cfe6e60938b", "value": float64(40)}},
-				"f":  []interface{}{map[string]interface{}{"id": "ed8cf6a7-d585-4575-a08c-cf4aa27f1491", "value": float64(50)}},
-				"k":  []interface{}{map[string]interface{}{"id": "a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9", "value": float64(100)}},
-				"l":  []interface{}{map[string]interface{}{"id": "e7c6ddee-729e-44a4-b977-7d3eafe47497", "value": float64(110)}},
+				"c":  []interface{}{map[string]interface{}{"value": json.Number("20"), "id": "8e58d327-e06b-44e4-a5d9-75558cdca2dc"}},
+				"ii": []interface{}{map[string]interface{}{"id": "fe3a148a-4a80-4ca2-851b-5dc473f549e6", "value": json.Number("80")}, map[string]interface{}{"id": "021a9a1a-49c1-4ae3-aa40-3f5c33a12e9f", "value": json.Number("80")}},
+				"m":  []interface{}{map[string]interface{}{"value": json.Number("120"), "id": "a4b507fe-bb16-4b4a-aa1d-cf922af67cd2"}},
+				"x":  []interface{}{map[string]interface{}{"id": "56b71ade-d0aa-416f-8da3-517391fd7ee4", "value": json.Number("130")}},
+				"b":  []interface{}{map[string]interface{}{"value": json.Number("10"), "id": "91df576d-3501-4303-9d89-1c8409ce6ff4"}},
+				"dd": []interface{}{map[string]interface{}{"id": "51336fa2-ebf9-4d7a-9ec5-0128a6341ea6", "value": json.Number("30")}, map[string]interface{}{"id": "337fe24f-8ea3-40ea-b726-e7169883618b", "value": json.Number("30")}},
+				"h":  []interface{}{map[string]interface{}{"id": "3e16edbc-5a77-4b97-bdb4-4695996d8915", "value": json.Number("0.07")}},
+				"j":  []interface{}{map[string]interface{}{"id": "e7235d64-4212-448d-869f-612cf2403b96", "value": json.Number("90")}},
+				"xx": []interface{}{map[string]interface{}{"id": "9cf5c2a7-45eb-4e58-bf5a-9f15186c0819", "value": json.Number("140")}, map[string]interface{}{"id": "122191a7-5437-45ae-9ec6-1a73fee5c996", "value": json.Number("140")}},
+				"ee": []interface{}{map[string]interface{}{"value": json.Number("40"), "id": "8d21dad3-5ed7-4925-bfae-12b345592a36"}, map[string]interface{}{"id": "6277ad55-a3ed-41bc-8ad2-1cfe6e60938b", "value": json.Number("40")}},
+				"f":  []interface{}{map[string]interface{}{"id": "ed8cf6a7-d585-4575-a08c-cf4aa27f1491", "value": json.Number("50")}},
+				"k":  []interface{}{map[string]interface{}{"id": "a435d9ad-9f8f-43d6-b108-a2fe1d5a95b9", "value": json.Number("100")}},
+				"l":  []interface{}{map[string]interface{}{"id": "e7c6ddee-729e-44a4-b977-7d3eafe47497", "value": json.Number("110")}},
 				"nn": []interface{}{map[string]interface{}{"id": "7af1d164-3966-4dde-93fa-511a936601f5", "value": true}, map[string]interface{}{"id": "90be7e5c-8bf6-4bfd-bd01-38be1697d9f8", "value": true}},
-				"d":  []interface{}{map[string]interface{}{"id": "565d7400-e75b-4813-aa39-6c09cae781a8", "value": float64(30)}},
-				"g":  []interface{}{map[string]interface{}{"value": float64(0.06), "id": "2c6860ac-7151-48f9-b866-5b40a3488d1e"}},
+				"d":  []interface{}{map[string]interface{}{"id": "565d7400-e75b-4813-aa39-6c09cae781a8", "value": json.Number("30")}},
+				"g":  []interface{}{map[string]interface{}{"value": json.Number("0.06"), "id": "2c6860ac-7151-48f9-b866-5b40a3488d1e"}},
 				"n":  []interface{}{map[string]interface{}{"id": "954cc7f9-d655-4123-a66d-e3e665cf7d49", "value": true}},
-				"bb": []interface{}{map[string]interface{}{"id": "b96f76ed-028a-4e2f-942e-2adf37f5bcb0", "value": float64(10)}, map[string]interface{}{"id": "7f010e2c-b764-4601-b190-4b34372203e7", "value": float64(10)}},
-				"hh": []interface{}{map[string]interface{}{"value": float64(0.07), "id": "b2266aff-1f18-4391-98f8-5ad6a542a2e1"}, map[string]interface{}{"id": "709a88dd-8fc4-4c8d-bd31-61962feff9b2", "value": float64(0.07)}},
-				"ff": []interface{}{map[string]interface{}{"id": "4c2afab4-df69-490b-8cf0-c8311808c0fc", "value": float64(50)}, map[string]interface{}{"id": "38e68ad4-b9f8-4256-9638-1e52cdbb989a", "value": float64(50)}},
-				"gg": []interface{}{map[string]interface{}{"value": float64(0.06), "id": "a0a129f4-bfa4-4d1a-bc77-df5b63049197"}, map[string]interface{}{"id": "3c8b51c4-8b40-4d5f-a79d-6a9d74929837", "value": float64(0.06)}},
-				"ll": []interface{}{map[string]interface{}{"id": "ff4d7387-b3f7-41ec-9cee-912bb9220545", "value": float64(110)}, map[string]interface{}{"id": "519d212c-4774-49a1-bc4e-3715af929c38", "value": float64(110)}},
-				"mm": []interface{}{map[string]interface{}{"id": "0487cc86-ee49-4649-8131-d43610235c40", "value": float64(120)}, map[string]interface{}{"id": "b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12", "value": float64(120)}},
+				"bb": []interface{}{map[string]interface{}{"id": "b96f76ed-028a-4e2f-942e-2adf37f5bcb0", "value": json.Number("10")}, map[string]interface{}{"id": "7f010e2c-b764-4601-b190-4b34372203e7", "value": json.Number("10")}},
+				"hh": []interface{}{map[string]interface{}{"value": json.Number("0.07"), "id": "b2266aff-1f18-4391-98f8-5ad6a542a2e1"}, map[string]interface{}{"id": "709a88dd-8fc4-4c8d-bd31-61962feff9b2", "value": json.Number("0.07")}},
+				"ff": []interface{}{map[string]interface{}{"id": "4c2afab4-df69-490b-8cf0-c8311808c0fc", "value": json.Number("50")}, map[string]interface{}{"id": "38e68ad4-b9f8-4256-9638-1e52cdbb989a", "value": json.Number("50")}},
+				"gg": []interface{}{map[string]interface{}{"value": json.Number("0.06"), "id": "a0a129f4-bfa4-4d1a-bc77-df5b63049197"}, map[string]interface{}{"id": "3c8b51c4-8b40-4d5f-a79d-6a9d74929837", "value": json.Number("0.06")}},
+				"ll": []interface{}{map[string]interface{}{"id": "ff4d7387-b3f7-41ec-9cee-912bb9220545", "value": json.Number("110")}, map[string]interface{}{"id": "519d212c-4774-49a1-bc4e-3715af929c38", "value": json.Number("110")}},
+				"mm": []interface{}{map[string]interface{}{"id": "0487cc86-ee49-4649-8131-d43610235c40", "value": json.Number("120")}, map[string]interface{}{"id": "b6e9c4c6-8ac4-4124-92cd-e53acf0cfd12", "value": json.Number("120")}},
 				"a":  []interface{}{map[string]interface{}{"value": "aa", "id": "15d0a33b-d369-4b61-b162-320ece53cfa1"}},
-				"e":  []interface{}{map[string]interface{}{"id": "bf35b756-0640-48c6-9601-aab77c6aa603", "value": float64(40)}}},
+				"e":  []interface{}{map[string]interface{}{"id": "bf35b756-0640-48c6-9601-aab77c6aa603", "value": json.Number("40")}}},
 		},
 	}
 
@@ -713,7 +713,8 @@ func TestGet(t *testing.T) {
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
-	g, errs := NewClient(NewClientConfig(u))
+	c := NewClientConfig(u)
+	g, errs := NewClient(c)
 	assert.IsType(make(chan error), errs)
 	assert.NotNil(g)
 	assert.IsType(&Client{}, g)
@@ -1088,7 +1089,7 @@ func TestAddEWithProps(t *testing.T) {
 			"outVLabel":  "test",
 			"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
 			"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
-			"properties": map[string]interface{}{"foo": "bar", "biz": float64(3)},
+			"properties": map[string]interface{}{"foo": "bar", "biz": json.Number("3")},
 		},
 	}
 
@@ -1108,7 +1109,7 @@ func TestAddEWithPropsById(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(mock))
 	defer s.Close()
 
-	// Convert http://127.0.0.1 to ws://127.0.0.
+	// Convert http://127.0.0.1 to ws://127.0.0.1
 	u := "ws" + strings.TrimPrefix(s.URL, "http")
 
 	// test connecting to the mock server
@@ -1135,7 +1136,7 @@ func TestAddEWithPropsById(t *testing.T) {
 			"outVLabel":  "test",
 			"inV":        "d014ab68-fa70-4a6c-8f11-33fd3eef0112",
 			"outV":       "e3ff8f7d-0b29-4f4e-854a-affa3544b12a",
-			"properties": map[string]interface{}{"biz": float64(3), "foo": "bar"},
+			"properties": map[string]interface{}{"biz": json.Number("3"), "foo": "bar"},
 		},
 	}
 
