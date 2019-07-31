@@ -3,6 +3,7 @@
 [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg)](http://godoc.org/github.com/intwinelabs/gremgoser)
 [![Build Status](https://travis-ci.org/intwinelabs/gremgoser.svg?branch=master)](https://travis-ci.org/intwinelabs/gremgoser)
 [![Coverage Status](https://coveralls.io/repos/github/intwinelabs/gremgoser/badge.svg?branch=master)](https://coveralls.io/github/intwinelabs/gremgoser?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/intwinelabs/gocosmosdb)](https://goreportcard.com/report/github.com/intwinelabs/gocosmosdb)
 
 gremgoser is a fast, efficient, and easy-to-use client for the TinkerPop graph database stack. It is a Gremlin language driver which uses WebSockets to interface with Gremlin Server and has a strong emphasis on concurrency and scalability. gremgoser started as a fork of [gremgo](http://github.com/qasaur/gremgo). The main difference is gremgoser supports serializing and de-serializing interfaces in/out of a graph as well as Vertex and edge creation from Go interfaces. Please keep in mind that gremgoser is still under heavy development and might change until v1.0 release. gremgoser also fixes all panics that could happen in gremgo. The latest code also removed the storage of username and password in clear text in memory.
 
