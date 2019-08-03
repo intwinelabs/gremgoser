@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -58,6 +59,10 @@ type Test struct {
 	XX []XXX     `graph:"xx,[]number"`
 	Z  Test2     `graph:"z,struct"`
 	ZZ []Test2   `graph:"zz,[]struct"`
+}
+type TestPtrStruct struct {
+	Id  uuid.UUID `graph:"id,string"`
+	Ptr *string   `graph:"ptr,string"`
 }
 
 func TestNewClient(t *testing.T) {
@@ -796,6 +801,46 @@ func TestGet(t *testing.T) {
 	err = g.Get(q, nil, _ts3)
 	_err = errors.New("the passed interface is not a ptr")
 	assert.Equal(_err, err)
+}
+
+func TestPtr(t *testing.T) {
+	assert := assert.New(t)
+
+	// Create test server with the mock handler.
+	s := httptest.NewServer(http.HandlerFunc(mock))
+	defer s.Close()
+
+	// Convert http://127.0.0.1 to ws://127.0.0.
+	u := "ws" + strings.TrimPrefix(s.URL, "http")
+
+	// test connecting to the mock server
+	c := NewClientConfig(u)
+	g, errs := NewClient(c)
+	assert.IsType(make(chan error), errs)
+	assert.NotNil(g)
+	assert.IsType(&Client{}, g)
+
+	// setup err channel
+	go func(chan error) {
+		err := <-errs
+		assert.Nil(err)
+	}(errs)
+
+	// create test struct to pass as interface to AddV
+	pString := "test"
+	id, _ := uuid.Parse("b2b624f4-d0cf-4ec9-a5b1-a48b114b7c69")
+	tptr := TestPtrStruct{
+		Id:  id,
+		Ptr: &pString,
+	}
+	_, err := g.AddV("test", &tptr)
+	assert.Nil(err)
+
+	_tptr := []TestPtrStruct{}
+	err = g.Get("g.V('b2b624f4-d0cf-4ec9-a5b1-a48b114b7c69')", nil, &_tptr)
+	spew.Dump(_tptr)
+	assert.Nil(err)
+	assert.Equal(_tptr[0], tptr)
 }
 
 func TestDisposed(t *testing.T) {

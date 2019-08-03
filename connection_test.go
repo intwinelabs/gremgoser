@@ -45,6 +45,12 @@ var gremGet = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461')`
 
 var gremV1 = `g.addV('test').property('id', '64795211-c4a1-4eac-9e0a-b674ced77461').property('a', 'aa').property('b', 10).property('c', 20).property('d', 30).property('e', 40).property('f', 50).property('g', 0.06).property('h', 0.07).property('i', 80).property('j', 90).property('k', 100).property('l', 110).property('m', 120).property('n', true).property('aa', 'aa').property('aa', 'aa').property('bb', 10).property('bb', 10).property('cc', 20).property('cc', 20).property('dd', 30).property('dd', 30).property('ee', 40).property('ee', 40).property('ff', 50).property('ff', 50).property('gg', 0.06).property('gg', 0.06).property('hh', 0.07).property('hh', 0.07).property('ii', 80).property('ii', 80).property('jj', 90).property('jj', 90).property('kk', 100).property('kk', 100).property('ll', 110).property('ll', 110).property('mm', 120).property('mm', 120).property('nn', true).property('nn', true).property('x', 130).property('xx', 140).property('xx', 140).property('z', '{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}').property('zz', '[{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10},{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}]')`
 
+var addVPtr = `g.addV('test').property('id', 'b2b624f4-d0cf-4ec9-a5b1-a48b114b7c69').property('ptr', 'test')`
+
+var ptrResp = `{"requestId":"e90163ec-e725-403f-b576-3e5d78ee6074","status":{"code":200,"attributes":{"x-ms-status-code":200,"x-ms-request-charge":83.89,"x-ms-total-request-charge":83.89,"x-ms-cosmosdb-graph-request-charge":83.89,"StorageRU":83.89},"message":""},"result":{"data":[{"id":"b2b624f4-d0cf-4ec9-a5b1-a48b114b7c69","label":"test","type":"vertex","properties":{"id":[{"id":"15d0a33b-d369-4b61-b162-320ece53cfa1","value":""}],"ptr":[{"id":"91df576d-3501-4303-9d89-1c8409ce6ff4","value":"test"}]}}],"meta":{}}}`
+
+var getVPtr = `g.V('b2b624f4-d0cf-4ec9-a5b1-a48b114b7c69')`
+
 var gremUpdateV1 = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').property('a', 'aa').property('b', 10).property('c', 20).property('d', 30).property('e', 40).property('f', 50).property('g', 0.06).property('h', 0.07).property('i', 80).property('j', 90).property('k', 100).property('l', 110).property('m', 120).property('n', true).sideEffect(properties('aa').drop()).property(list, 'aa', 'aa').property(list, 'aa', 'aa').sideEffect(properties('bb').drop()).property(list, 'bb', 10).property(list, 'bb', 10).sideEffect(properties('cc').drop()).property(list, 'cc', 20).property(list, 'cc', 20).sideEffect(properties('dd').drop()).property(list, 'dd', 30).property(list, 'dd', 30).sideEffect(properties('ee').drop()).property(list, 'ee', 40).property(list, 'ee', 40).sideEffect(properties('ff').drop()).property(list, 'ff', 50).property(list, 'ff', 50).sideEffect(properties('gg').drop()).property(list, 'gg', 0.06).property(list, 'gg', 0.06).sideEffect(properties('hh').drop()).property(list, 'hh', 0.07).property(list, 'hh', 0.07).sideEffect(properties('ii').drop()).property(list, 'ii', 80).property(list, 'ii', 80).sideEffect(properties('jj').drop()).property(list, 'jj', 90).property(list, 'jj', 90).sideEffect(properties('kk').drop()).property(list, 'kk', 100).property(list, 'kk', 100).sideEffect(properties('ll').drop()).property(list, 'll', 110).property(list, 'll', 110).sideEffect(properties('mm').drop()).property(list, 'mm', 120).property(list, 'mm', 120).sideEffect(properties('nn').drop()).property(list, 'nn', true).property(list, 'nn', true).property('x', 130).sideEffect(properties('xx').drop()).property(list, 'xx', 140).property(list, 'xx', 140).property('z', '{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}').property('zz', '[{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10},{"Id":"64795211-c4a1-4eac-9e0a-b674ced77461","A":"aa","B":10}]')`
 
 var gremDropV1 = `g.V('64795211-c4a1-4eac-9e0a-b674ced77461').drop()`
@@ -248,6 +254,37 @@ func mock(w http.ResponseWriter, r *http.Request) {
 			case string(gremUpdateV1): // query update vertex
 				var resp GremlinResponse
 				err := json.Unmarshal([]byte(addV1Resp), &resp)
+				if err != nil {
+					break
+				}
+				resp.RequestId = req.RequestId
+				respMessage, err := json.Marshal(resp)
+				if err != nil {
+					break
+				}
+				err = c.WriteMessage(mt, respMessage)
+				if err != nil {
+					break
+				}
+
+			case string(addVPtr): // query add ptr vertex
+				var resp GremlinResponse
+				err := json.Unmarshal([]byte(ptrResp), &resp)
+				if err != nil {
+					break
+				}
+				resp.RequestId = req.RequestId
+				respMessage, err := json.Marshal(resp)
+				if err != nil {
+					break
+				}
+				err = c.WriteMessage(mt, respMessage)
+				if err != nil {
+					break
+				}
+			case string(getVPtr): // query get ptr vertex
+				var resp GremlinResponse
+				err := json.Unmarshal([]byte(ptrResp), &resp)
 				if err != nil {
 					break
 				}

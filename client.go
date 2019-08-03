@@ -173,7 +173,6 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 
 	var respSlice []*GremlinData
 	respDataSlice, err := c.executeRequest(query, bindings, nil)
-	c.debug("\n\n\n%s\n\n\n", spew.Sdump(respDataSlice))
 	if err != nil {
 		return err
 	}
@@ -217,7 +216,6 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 	sSlice := reflect.MakeSlice(reflect.SliceOf(sType), lenRespSlice, lenRespSlice+1)
 	// iterate over the GremlinData respSlice
 	for j, innerItem := range respSlice {
-		//spew.Dump(innerItem)
 		// create a new struct to populate
 		s := reflect.New(sType)
 		// check for Id field
@@ -238,6 +236,17 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 			f := s.Elem().Field(i)
 			// check if we can modify
 			if f.CanSet() {
+				isPtr := false
+				var kind reflect.Kind
+				// if it's a pointer get the underlying interface
+				if f.Kind() == reflect.Ptr {
+					isPtr = true
+				}
+				if f.Kind() == reflect.Ptr || f.Kind() == reflect.Slice {
+					kind = f.Type().Elem().Kind()
+				} else {
+					kind = f.Kind()
+				}
 				if f.Kind() == uuidType { // if its the Id field we look in the base response map
 					// create a UUID
 					f.Set(reflect.ValueOf(innerItem.Id))
@@ -255,58 +264,86 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 							if err != nil {
 								return err
 							}
-							if f.Kind() == reflect.String { // Set as string
-								_v, ok := v.(string)
+							switch kind {
+							case reflect.String: // Set as string
+								vString, ok := v.(string)
 								if ok {
-									f.SetString(_v)
-								}
-							} else if f.Kind() == reflect.Int || f.Kind() == reflect.Int8 || f.Kind() == reflect.Int16 || f.Kind() == reflect.Int32 || f.Kind() == reflect.Int64 { // Set as int
-								_v, ok := v.(json.Number)
-								__v, _ := _v.Int64()
-								if ok {
-									if !f.OverflowInt(__v) {
-										f.SetInt(__v)
+									if isPtr {
+										f.Set(reflect.ValueOf(&vString))
+									} else {
+										f.SetString(vString)
 									}
 								}
-							} else if f.Kind() == reflect.Float32 || f.Kind() == reflect.Float64 { // Set as float
-								_v, ok := v.(json.Number)
-								__v, _ := _v.Float64()
+							case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64: // Set as int
+								vNumber, ok := v.(json.Number)
 								if ok {
-									if !f.OverflowFloat(__v) {
-										f.SetFloat(__v)
+									vInt, _ := vNumber.Int64()
+									if !f.OverflowInt(vInt) {
+										if isPtr {
+											f.Set(reflect.ValueOf(&vInt))
+										} else {
+											f.SetInt(vInt)
+										}
 									}
 								}
-							} else if f.Kind() == reflect.Uint || f.Kind() == reflect.Uint8 || f.Kind() == reflect.Uint16 || f.Kind() == reflect.Uint32 || f.Kind() == reflect.Uint64 { // Set as uint
-								_v, ok := v.(json.Number)
-								__v, _ := _v.Int64()
-								___v := uint64(__v)
+							case reflect.Float32, reflect.Float64: // Set as float
+								vNumber, ok := v.(json.Number)
 								if ok {
-									if !f.OverflowUint(___v) {
-										f.SetUint(___v)
+									vFloat, _ := vNumber.Float64()
+									if !f.OverflowFloat(vFloat) {
+										if isPtr {
+											f.Set(reflect.ValueOf(&vFloat))
+										} else {
+											f.SetFloat(vFloat)
+										}
 									}
 								}
-							} else if f.Kind() == reflect.Bool { // Set as bool
-								_v, ok := v.(bool)
+							case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64: // Set as uint
+								vNumber, ok := v.(json.Number)
 								if ok {
-									f.SetBool(_v)
+									vInt, _ := vNumber.Int64()
+									vUint := uint64(vInt)
+									if !f.OverflowUint(vUint) {
+										if isPtr {
+											f.Set(reflect.ValueOf(&vUint))
+										} else {
+											f.SetUint(vUint)
+										}
+									}
 								}
-							} else if f.Kind() == reflect.Struct || f.Kind() == reflect.Map { // take JSON string and unmarshal into struct
-								_v, ok := v.(string)
+							case reflect.Bool: // Set as bool
+								vBool, ok := v.(bool)
+								if ok {
+									if isPtr {
+										f.Set(reflect.ValueOf(&vBool))
+									} else {
+										f.SetBool(vBool)
+									}
+								}
+							case reflect.Struct, reflect.Map: // take JSON string and unmarshal into struct or map
+								vString, ok := v.(string)
 								if ok {
 									s := reflect.New(f.Type()).Interface()
-									json.Unmarshal([]byte(_v), s)
-									f.Set(reflect.ValueOf(s).Elem())
+									json.Unmarshal([]byte(vString), s)
+									if isPtr {
+										f.Set(reflect.ValueOf(s))
+									} else {
+										f.Set(reflect.ValueOf(s).Elem())
+									}
 								}
-							} else if f.Kind() == reflect.Slice { // take JSON string and unmarshal into slice
-								_v, ok := v.(string)
+							case reflect.Slice: // take JSON string and unmarshal into slice
+								vString, ok := v.(string)
 								if ok {
 									sSlice := reflect.SliceOf(f.Type().Elem())
 									s := reflect.New(sSlice)
-									json.Unmarshal([]byte(_v), s.Interface())
-									f.Set(s.Elem())
+									json.Unmarshal([]byte(vString), s.Interface())
+									if isPtr {
+										sInterface := s.Interface()
+										f.Set(reflect.ValueOf(sInterface))
+									} else {
+										f.Set(s.Elem())
+									}
 								}
-							} else if f.Kind() == reflect.Ptr {
-								return errors.New("gremgoser does not currently support root level pointers")
 							}
 						} else if propSliceLen > 1 { // we need to creates slices for the properties
 							pSlice := reflect.MakeSlice(reflect.SliceOf(f.Type().Elem()), propSliceLen, propSliceLen+1)
@@ -317,43 +354,41 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 								if err != nil {
 									return err
 								}
-								if f.Type().Elem().Kind() == reflect.String { // Set as string
-									_v, ok := v.(string)
+								switch kind {
+								case reflect.String: // Set as string
+									vString, ok := v.(string)
 									if ok {
-										pSlice.Index(i).SetString(_v)
+										pSlice.Index(i).SetString(vString)
 									}
-								} else if f.Type().Elem().Kind() == reflect.Int || f.Type().Elem().Kind() == reflect.Int8 || f.Type().Elem().Kind() == reflect.Int16 || f.Type().Elem().Kind() == reflect.Int32 || f.Type().Elem().Kind() == reflect.Int64 { // Set as int
-									_v, ok := v.(json.Number)
-									__v, _ := _v.Int64()
-									___v := int64(__v)
+								case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64: // Set as int
+									vNumber, ok := v.(json.Number)
 									if ok {
-
-										if !pSlice.Index(i).OverflowInt(___v) {
-											pSlice.Index(i).SetInt(___v)
+										vInt, _ := vNumber.Int64()
+										if !pSlice.Index(i).OverflowInt(vInt) {
+											pSlice.Index(i).SetInt(vInt)
 										}
 									}
-								} else if f.Type().Elem().Kind() == reflect.Float32 || f.Type().Elem().Kind() == reflect.Float64 { // Set as float
-									_v, ok := v.(json.Number)
-									__v, _ := _v.Float64()
-									___v := float64(__v)
+								case reflect.Float32, reflect.Float64: // Set as float
+									vNumber, ok := v.(json.Number)
 									if ok {
-										if !pSlice.Index(i).OverflowFloat(___v) {
-											pSlice.Index(i).SetFloat(___v)
+										vFloat, _ := vNumber.Float64()
+										if !pSlice.Index(i).OverflowFloat(vFloat) {
+											pSlice.Index(i).SetFloat(vFloat)
 										}
 									}
-								} else if f.Type().Elem().Kind() == reflect.Uint || f.Type().Elem().Kind() == reflect.Uint8 || f.Type().Elem().Kind() == reflect.Uint16 || f.Type().Elem().Kind() == reflect.Uint32 || f.Type().Elem().Kind() == reflect.Uint64 { // Set as uint
-									_v, ok := v.(json.Number)
-									__v, _ := _v.Int64()
-									___v := uint64(__v)
+								case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64: // Set as uint
+									vNumber, ok := v.(json.Number)
 									if ok {
-										if !pSlice.Index(i).OverflowUint(___v) {
-											pSlice.Index(i).SetUint(___v)
+										vInt, _ := vNumber.Int64()
+										vUint := uint64(vInt)
+										if !pSlice.Index(i).OverflowUint(vUint) {
+											pSlice.Index(i).SetUint(vUint)
 										}
 									}
-								} else if f.Type().Elem().Kind() == reflect.Bool { // Set as bool
-									_v, ok := v.(bool)
+								case reflect.Bool: // Set as bool
+									vBool, ok := v.(bool)
 									if ok {
-										pSlice.Index(i).SetBool(_v)
+										pSlice.Index(i).SetBool(vBool)
 									}
 								}
 							}
@@ -405,6 +440,9 @@ func (c *Client) AddV(label string, data interface{}) ([]*GremlinRespData, error
 		}
 		tagLength++
 		val := d.Field(i).Interface()
+		if reflect.TypeOf(val).Kind() == reflect.Ptr {
+			val = reflect.ValueOf(val).Elem().Interface()
+		}
 		if len(opts) == 0 {
 			return nil, fmt.Errorf("gremgoser: interface field graph tag does not contain a tag option type, field type: %T", val)
 		} else if opts.Contains("string") || opts.Contains("partitionKey") {
