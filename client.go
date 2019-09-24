@@ -503,7 +503,7 @@ func (c *Client) UpdateV(data interface{}) ([]*GremlinRespData, error) {
 		if len(opts) == 0 {
 			return nil, fmt.Errorf("gremgoser: interface field graph tag does not contain a tag option type, field type: %T", val)
 		} else if opts.Contains("partitionKey") {
-			continue
+			q = fmt.Sprintf("%s.has('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", val)))
 		} else if opts.Contains("string") {
 			q = fmt.Sprintf("%s.property('%s', '%s')", q, name, escapeString(fmt.Sprintf("%s", val)))
 		} else if opts.Contains("bool") || opts.Contains("number") {
