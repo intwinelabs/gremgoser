@@ -719,6 +719,10 @@ func TestGet(t *testing.T) {
 
 	// test connecting to the mock server
 	c := NewClientConfig(u)
+	/*c.Debug = true
+	c.Verbose = true
+	c.VeryVerbose = true
+	c.Logger = logger.New()*/
 	g, errs := NewClient(c)
 	assert.IsType(make(chan error), errs)
 	assert.NotNil(g)

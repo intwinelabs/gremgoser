@@ -179,14 +179,14 @@ func (c *Client) readWorker(errs chan error, quit chan struct{}) {
 
 // debugf prints to the configured logger if debug is enabled
 func (ws *Ws) debugf(frmt string, i ...interface{}) {
-	if ws.debug {
+	if ws.debug && ws.logger != nil {
 		ws.logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: WS: DEBUG: "+frmt, i...))
 	}
 }
 
 // verbosef prints to the configured logger if debug is enabled
 func (ws *Ws) verbosef(frmt string, i ...interface{}) {
-	if ws.verbose {
+	if ws.verbose && ws.logger != nil {
 		ws.logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: WS: VERBOSE: "+frmt, i...))
 	}
 }

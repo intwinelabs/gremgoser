@@ -37,6 +37,7 @@ type ClientConfig struct {
 	AuthReq      *GremlinRequest
 	Debug        bool
 	Verbose      bool
+	VeryVerbose  bool
 	Timeout      time.Duration
 	PingInterval time.Duration
 	WritingWait  time.Duration
@@ -95,9 +96,12 @@ type GremlinStatus struct {
 }
 
 type GremlinStatusAttributes struct {
-	XMsStatusCode         int     `json:"x-ms-status-code"`
-	XMsRequestCharge      float32 `json:"x-ms-request-charge"`
-	XMsTotalRequestCharge float32 `json:"x-ms-total-request-charge"`
+	XMsStatusCode         int       `json:"x-ms-status-code"`
+	XMsRequestCharge      float32   `json:"x-ms-request-charge"`
+	XMsTotalRequestCharge float32   `json:"x-ms-total-request-charge"`
+	XMsServerTimeMs       float32   `json:"x-ms-server-time-ms"`
+	XMsTotalServerTimeMs  float32   `json:"x-ms-total-server-time-ms"`
+	XMsActivityId         uuid.UUID `json:"x-ms-activity-id"`
 }
 
 type GremlinResult struct {

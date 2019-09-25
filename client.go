@@ -107,15 +107,22 @@ func (c *Client) IsConnected() bool {
 
 // debug prints to the configured logger if debug is enabled
 func (c *Client) debug(frmt string, i ...interface{}) {
-	if c.conf.Debug {
+	if c.conf.Debug && c.conf.Logger != nil {
 		c.conf.Logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: DEBUG: "+frmt, i...))
 	}
 }
 
-// verbose prints to the configured logger if debug is enabled
+// verbose prints to the configured logger if verbose is enabled
 func (c *Client) verbose(frmt string, i ...interface{}) {
-	if c.conf.Verbose {
+	if c.conf.Verbose && c.conf.Logger != nil {
 		c.conf.Logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: VERBOSE: "+frmt, i...))
+	}
+}
+
+// veryVerbose prints to the configured logger if very verbose is enabled
+func (c *Client) veryVerbose(frmt string, i ...interface{}) {
+	if c.conf.VeryVerbose && c.conf.Logger != nil {
+		c.conf.Logger.InfoDepth(1, fmt.Sprintf("GREMGOSER: VERY VERBOSE: "+frmt, i...))
 	}
 }
 
@@ -183,7 +190,7 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 	}
 
 	// if the returndata is GraphSON cast to GremlinData
-	// we try to marshal the response data slice
+	// we try to unmarshal the response data slice
 	obj, err := json.Marshal(respDataSlice)
 	if err != nil {
 		c.debug("err marshaling resp data slice: %s", err)
@@ -208,6 +215,8 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 		return nil
 	}
 
+	c.veryVerbose("Response Data Slice: %s", spew.Sdump(respSlice))
+
 	// get the underlying struct type
 	sType := reflect.TypeOf(strct.Interface()).Elem()
 
@@ -229,6 +238,7 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 			// get graph tag for field
 			tag := sType.Field(i).Tag.Get("graph")
 			name, opts := parseTag(tag)
+			c.veryVerbose("Struct Field ==> Name: %s, Opts: %s", name, opts)
 			if len(name) == 0 && len(opts) == 0 {
 				continue
 			}
@@ -236,17 +246,20 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 			f := s.Elem().Field(i)
 			// check if we can modify
 			if f.CanSet() {
-				isPtr := false
+				isPtr, isSlice := false, false
 				var kind reflect.Kind
-				// if it's a pointer get the underlying interface
+				// if it's a pointer or slice get the underlying interface
 				if f.Kind() == reflect.Ptr {
 					isPtr = true
-				}
-				if f.Kind() == reflect.Ptr || f.Kind() == reflect.Slice {
+					kind = f.Type().Elem().Kind()
+				} else if f.Kind() == reflect.Slice {
+					isSlice = true
 					kind = f.Type().Elem().Kind()
 				} else {
 					kind = f.Kind()
 				}
+				_ = isSlice
+				c.veryVerbose("Struct Field Type: %s", kind)
 				if f.Kind() == uuidType { // if its the Id field we look in the base response map
 					// create a UUID
 					f.Set(reflect.ValueOf(innerItem.Id))
@@ -331,8 +344,10 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 										f.Set(reflect.ValueOf(s).Elem())
 									}
 								}
-							case reflect.Slice: // take JSON string and unmarshal into slice
-								vString, ok := v.(string)
+							}
+							// this is a special case
+							if isSlice && opts.Contains("struct") { // take JSON string and unmarshal into slice
+								vString, ok := v.(string) // the data is stored as a struct string in the graph
 								if ok {
 									sSlice := reflect.SliceOf(f.Type().Elem())
 									s := reflect.New(sSlice)
@@ -404,6 +419,8 @@ func (c *Client) Get(query string, bindings map[string]interface{}, ptr interfac
 	}
 	// Copy the new slice to the passed data slice
 	strct.Set(sSlice)
+
+	c.veryVerbose("Interface de-serialized: %+v", spew.Sdump(ptr))
 
 	return nil
 }

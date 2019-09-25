@@ -53,9 +53,7 @@ func (c *Client) saveResponse(resp *GremlinResponse) {
 		container = existingData.([]*GremlinRespData)
 	}
 	c.verbose("RequestId: %s, existing data: %+v", resp.RequestId, container)
-	for _, val := range resp.Result.Data {
-		container = append(container, val) //iterate over new items
-	}
+	container = append(container, resp.Result.Data...)
 	c.verbose("RequestId: %s, new data: %+v", resp.RequestId, container)
 	c.results.Store(resp.RequestId, container) // Add new data to buffer for future retrieval
 	respNotifier, _ := c.responseNotifier.LoadOrStore(resp.RequestId, make(chan int, 1))
